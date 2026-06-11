@@ -1,0 +1,6 @@
+node_modules/
+backend/db/terra.db
+dist/
+.env
+.env.local
+*.log
