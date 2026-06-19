@@ -22,10 +22,10 @@ export default function ControlCenter() {
       dashboardApi.alerts(),
       dashboardApi.timeline(),
       dashboardApi.charts(),
-    ]).then(([m, a, t, c]) => {
+    ]).then(([m, a, tl, c]) => {
       setMetrics(m);
       setAlerts(a);
-      setTimeline(t);
+      setTimeline(tl);
       setCharts(c);
     }).finally(() => setLoading(false));
 
@@ -123,7 +123,7 @@ export default function ControlCenter() {
             <div className="text-xs font-semibold uppercase tracking-widest text-foundry-muted mb-3">{t('chart.affectedTrend')}</div>
             <ResponsiveContainer width="100%" height={160}>
               <LineChart data={charts.affectedTrend}>
-                <XAxis dataKey="date" tick={{ fill: '#64748b', fontSize: 9 }} />
+                <XAxis dataKey="month" tick={{ fill: '#64748b', fontSize: 9 }} />
                 <YAxis tick={{ fill: '#64748b', fontSize: 9 }} />
                 <Tooltip
                   contentStyle={{ background: '#1a2030', border: '1px solid #1e2d3d', borderRadius: 6, fontSize: 11 }}
@@ -161,9 +161,9 @@ export default function ControlCenter() {
             <div className="text-xs font-semibold uppercase tracking-widest text-foundry-muted mb-3">Ontology Breakdown</div>
             <div className="grid grid-cols-3 gap-2">
               {charts.byType.map((t) => (
-                <div key={t.name} className="flex items-center gap-2 py-1">
+                <div key={t.label} className="flex items-center gap-2 py-1">
                   <div className="w-2 h-2 rounded-full shrink-0" style={{ background: t.color }} />
-                  <span className="text-[11px] text-foundry-text-dim truncate">{t.name}</span>
+                  <span className="text-[11px] text-foundry-text-dim truncate">{t.label}</span>
                   <span className="ml-auto text-[11px] font-mono-code font-semibold text-foundry-text">{t.count}</span>
                 </div>
               ))}
@@ -197,8 +197,8 @@ export default function ControlCenter() {
           <div className="text-xs font-semibold uppercase tracking-widest text-foundry-muted mb-3">{t('map.health')}</div>
           <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
             {charts.healthCases.map((h) => (
-              <div key={h.disease} className="bg-foundry-surface rounded p-3 border border-foundry-border">
-                <div className="text-xs text-foundry-muted mb-1">{h.disease}</div>
+              <div key={h.name} className="bg-foundry-surface rounded p-3 border border-foundry-border">
+                <div className="text-xs text-foundry-muted mb-1">{h.name}</div>
                 <div className="text-lg font-bold font-mono-code text-red-400">{h.cases.toLocaleString()}</div>
                 <Badge label={h.severity} className="mt-1" />
               </div>

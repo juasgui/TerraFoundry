@@ -66,6 +66,17 @@ router.get('/', (req, res) => {
   res.json({ total, page: Number(page), limit: Number(limit), objects });
 });
 
+// GET objects for a specific type (quick lookup)
+router.get('/by-type/:typeId', (req, res) => {
+  const db = getDB();
+  const objects = db.prepare(`
+    SELECT id, name, status, severity, geo_lat, geo_lng, properties
+    FROM objects WHERE type_id = ? ORDER BY name
+  `).all(req.params.typeId);
+  objects.forEach(o => { try { o.properties = JSON.parse(o.properties); } catch {} });
+  res.json(objects);
+});
+
 // GET single object with full 360° context
 router.get('/:id', (req, res) => {
   const db = getDB();
@@ -209,17 +220,6 @@ router.post('/:id/comments', (req, res) => {
     .run(`ev-${uuidv4().split('-')[0]}`, req.params.id, 'comment', 'New comment added', content.substring(0, 100), user_name || 'Analyst');
 
   res.status(201).json({ id });
-});
-
-// GET objects for a specific type (quick lookup)
-router.get('/by-type/:typeId', (req, res) => {
-  const db = getDB();
-  const objects = db.prepare(`
-    SELECT id, name, status, severity, geo_lat, geo_lng, properties
-    FROM objects WHERE type_id = ? ORDER BY name
-  `).all(req.params.typeId);
-  objects.forEach(o => { try { o.properties = JSON.parse(o.properties); } catch {} });
-  res.json(objects);
 });
 
 module.exports = router;

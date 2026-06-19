@@ -45,6 +45,9 @@ export interface FoundryObject {
   properties: Record<string, unknown>;
   created_at: string;
   updated_at: string;
+  type_label?: string;
+  type_icon?: string;
+  type_color?: string;
   type?: ObjectType;
   links_out?: ObjectLink[];
   links_in?: ObjectLink[];
@@ -55,14 +58,27 @@ export interface FoundryObject {
 }
 
 export interface ObjectLink {
-  id: string;
-  link_type_id: string;
-  from_object_id: string;
-  to_object_id: string;
+  link_id: string;
+  link_label: string;
+  link_color: string;
   metadata: Record<string, unknown>;
-  link_type?: LinkType;
-  target?: FoundryObject;
-  source?: FoundryObject;
+  linked_at: string;
+  // outgoing links
+  target_id?: string;
+  target_name?: string;
+  target_status?: string;
+  target_severity?: string;
+  target_type_label?: string;
+  target_type_icon?: string;
+  target_type_color?: string;
+  // incoming links
+  source_id?: string;
+  source_name?: string;
+  source_status?: string;
+  source_severity?: string;
+  source_type_label?: string;
+  source_type_icon?: string;
+  source_type_color?: string;
 }
 
 export interface Alert {
@@ -126,11 +142,11 @@ export interface DashboardMetrics {
 }
 
 export interface ChartData {
-  byProvince: { name: string; affected: number; severity: string }[];
-  byType: { name: string; count: number; color: string }[];
-  resourceStatus: { name: string; value: number }[];
-  healthCases: { disease: string; cases: number; severity: string }[];
-  affectedTrend: { date: string; affected: number; displaced: number }[];
+  byProvince: { name: string; affected: number; displaced: number; risk: number; severity: string }[];
+  byType: { label: string; count: number; color: string; icon: string }[];
+  resourceStatus: { status: string; count: number }[];
+  healthCases: { name: string; cases: number; deaths: number; severity: string }[];
+  affectedTrend: { month: string; affected: number; displaced: number }[];
 }
 
 export interface Asset {
@@ -228,6 +244,16 @@ export interface ChatMessage {
   timestamp: string;
   intent?: string;
   objects?: FoundryObject[];
+}
+
+export interface AiChatResponse {
+  role: string;
+  content: string;
+  intent?: string;
+  entities?: Record<string, string>;
+  data?: Record<string, unknown> | null;
+  sources?: string[];
+  ts: string;
 }
 
 export interface EmergingRisk {

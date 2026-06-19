@@ -324,14 +324,6 @@ router.get('/historical', (req, res) => {
       WHERE l.to_object_id = ? AND l.link_type_id = 'lt-responds'
     `).all(ev.id);
 
-    // Resources deployed
-    const resourcesDeployed = db.prepare(`
-      SELECT COUNT(*) as c FROM links l
-      JOIN missions m ON m.id = l.from_object_id
-      WHERE l.link_type_id = 'lt-responds' AND l.to_object_id = ?
-        AND m.id IN (SELECT from_object_id FROM links WHERE link_type_id = 'lt-deploys')
-    `).get(ev.id)?.c || 0;
-
     const year = ev.landfall_date ? new Date(ev.landfall_date).getFullYear()
                : ev.name.match(/\d{4}/)?.[0] || '?';
 

@@ -47,9 +47,9 @@ export default function ObjectDetailPanel() {
         {obj && (
           <div
             className="w-10 h-10 rounded-lg flex items-center justify-center text-lg shrink-0"
-            style={{ background: `${obj.type?.color ?? '#00d4ff'}22`, border: `1px solid ${obj.type?.color ?? '#00d4ff'}44` }}
+            style={{ background: `${obj.type_color ?? '#00d4ff'}22`, border: `1px solid ${obj.type_color ?? '#00d4ff'}44` }}
           >
-            {obj.type?.icon ?? '●'}
+            {obj.type_icon ?? '●'}
           </div>
         )}
         <div className="flex-1 min-w-0">
@@ -63,7 +63,7 @@ export default function ObjectDetailPanel() {
               </div>
               <div className="flex items-center gap-2 mt-1 flex-wrap">
                 <span className="text-[11px] text-foundry-muted font-mono-code">{obj.id}</span>
-                {obj.type && <span className="text-[10px] text-foundry-accent">{obj.type.label}</span>}
+                {obj.type_label && <span className="text-[10px] text-foundry-accent">{obj.type_label}</span>}
                 {obj.severity && <Badge label={obj.severity} />}
               </div>
             </>
@@ -136,11 +136,14 @@ export default function ObjectDetailPanel() {
                 <div className="text-[10px] font-semibold uppercase tracking-widest text-foundry-muted mb-2">Outgoing</div>
                 {obj.links_out.map((link) => (
                   <LinkCard
-                    key={link.id}
-                    label={link.link_type?.label ?? link.link_type_id}
-                    target={link.target}
+                    key={link.link_id}
+                    label={link.link_label}
+                    id={link.target_id}
+                    name={link.target_name}
+                    typeLabel={link.target_type_label}
+                    typeColor={link.target_type_color}
                     direction="out"
-                    onNavigate={() => link.target && openDetailPanel(link.target.id)}
+                    onNavigate={() => link.target_id && openDetailPanel(link.target_id)}
                   />
                 ))}
               </div>
@@ -150,11 +153,14 @@ export default function ObjectDetailPanel() {
                 <div className="text-[10px] font-semibold uppercase tracking-widest text-foundry-muted mb-2">Incoming</div>
                 {obj.links_in.map((link) => (
                   <LinkCard
-                    key={link.id}
-                    label={link.link_type?.inverse_label ?? link.link_type?.label ?? link.link_type_id}
-                    target={link.source}
+                    key={link.link_id}
+                    label={link.link_label}
+                    id={link.source_id}
+                    name={link.source_name}
+                    typeLabel={link.source_type_label}
+                    typeColor={link.source_type_color}
                     direction="in"
-                    onNavigate={() => link.source && openDetailPanel(link.source.id)}
+                    onNavigate={() => link.source_id && openDetailPanel(link.source_id)}
                   />
                 ))}
               </div>
@@ -228,10 +234,12 @@ function PropRow({ label, value }: { label: string; value: React.ReactNode }) {
   );
 }
 
-function LinkCard({ label, target, direction, onNavigate }: {
-  label: string; target?: FoundryObject; direction: 'in' | 'out'; onNavigate: () => void;
+function LinkCard({ label, id, name, typeLabel, typeColor, direction, onNavigate }: {
+  label: string; id?: string; name?: string;
+  typeLabel?: string; typeColor?: string;
+  direction: 'in' | 'out'; onNavigate: () => void;
 }) {
-  if (!target) return null;
+  if (!id || !name) return null;
   return (
     <div
       className="flex items-center gap-3 p-2 rounded bg-foundry-card border border-foundry-border hover:border-foundry-accent/30 cursor-pointer mb-1.5 group"
@@ -240,8 +248,8 @@ function LinkCard({ label, target, direction, onNavigate }: {
       <Link2 size={11} className={`shrink-0 ${direction === 'out' ? 'text-foundry-accent' : 'text-foundry-purple'}`} />
       <div className="flex-1 min-w-0">
         <div className="text-[10px] text-foundry-muted">{label}</div>
-        <div className="text-xs text-foundry-text truncate">{target.name}</div>
-        {target.type && <div className="text-[10px]" style={{ color: target.type.color }}>{target.type.label}</div>}
+        <div className="text-xs text-foundry-text truncate">{name}</div>
+        {typeLabel && <div className="text-[10px]" style={{ color: typeColor ?? '#00d4ff' }}>{typeLabel}</div>}
       </div>
       <ChevronRight size={12} className="text-foundry-muted group-hover:text-foundry-accent shrink-0" />
     </div>

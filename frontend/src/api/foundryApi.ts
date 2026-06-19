@@ -5,7 +5,7 @@ import type {
   MapObject, FloodZone, SituationReport,
   DecisionIntel, ImpactAnalysis, SimulationResult, AiBriefing,
   ImpactChainResult, RootCauseResult, VulnerabilityResult,
-  HistoricalResult, CompareResult, IntelWorkbenchSummary,
+  HistoricalResult, CompareResult, IntelWorkbenchSummary, AiChatResponse,
 } from '../types';
 
 const BASE = '/api';
@@ -125,9 +125,7 @@ export const pipelinesApi = {
 // ── AI ──────────────────────────────────────────────────────────────────────
 export const aiApi = {
   chat: (message: string, session_id: string) =>
-    req<{ role: string; content: string; intent?: string; session_id: string }>(
-      '/ai/chat', { method: 'POST', body: JSON.stringify({ message, session_id }) }
-    ),
+    req<AiChatResponse>('/ai/chat', { method: 'POST', body: JSON.stringify({ message, session_id }) }),
   briefing: () => req<AiBriefing>('/ai/briefing'),
   insights: () => req<{ type: string; severity: string; title: string; text: string; icon: string }[]>('/ai/insights'),
 };
