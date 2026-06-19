@@ -8,24 +8,30 @@ const multer = require('multer');
 const upload = multer({ storage: multer.memoryStorage() });
 
 const DATA_SOURCES = [
-  { id: 'src-inam',      name: 'INAM Meteorological Feed',         type: 'api',       icon: '🌤',  description: 'Instituto Nacional de Meteorologia — SYNOP, TEMP, radar, seasonal forecast', refresh_interval: '15min', target_types: ['WeatherEvent'] },
-  { id: 'src-ingd',      name: 'INGD Situation Reports',           type: 'api',       icon: '🏛',  description: 'Instituto Nacional de Gestão e Redução do Risco de Desastres', refresh_interval: '1h', target_types: ['AffectedArea','Mission','Resource'] },
-  { id: 'src-wfp-less',  name: 'WFP LESS Tracker',                 type: 'api',       icon: '🚛',  description: 'Logistics Execution Support System — supply chain, warehouse, dispatch', refresh_interval: '30min', target_types: ['SupplyChainItem','Resource'] },
-  { id: 'src-dhis2',     name: 'DHIS2 Health Surveillance',        type: 'api',       icon: '🏥',  description: 'Ministry of Health DHIS2 — IDSR, disease surveillance, malnutrition SMART', refresh_interval: '6h', target_types: ['HealthRisk'] },
-  { id: 'src-sentinel',  name: 'Sentinel-2 SAR (ESA Copernicus)',   type: 'satellite', icon: '🛰',  description: 'Synthetic aperture radar flood extent mapping, damage assessment', refresh_interval: '6h', target_types: ['AffectedArea','WeatherEvent'] },
-  { id: 'src-chirps',    name: 'CHIRPS Rainfall Data',              type: 'satellite', icon: '🌧',  description: 'Climate Hazards Group InfraRed Precipitation with Station data', refresh_interval: '24h', target_types: ['WeatherEvent'] },
-  { id: 'src-hdx',       name: 'HDX Open Data',                    type: 'api',       icon: '📊',  description: 'Humanitarian Data Exchange — population estimates, admin boundaries, 3W', refresh_interval: '24h', target_types: ['AffectedArea','Organization'] },
-  { id: 'src-csv-upload',name: 'CSV/JSON File Upload',              type: 'file',      icon: '📁',  description: 'Manual upload of field reports, assessment data, resource lists', refresh_interval: 'on-demand', target_types: ['*'] },
+  { id: 'src-inam',      name: 'INAM Meteorological Feed',         type: 'api',       icon: '🌤',  description: 'Instituto Nacional de Meteorologia — SYNOP, TEMP, radar, seasonal forecast',      description_pt: 'Instituto Nacional de Meteorologia — SYNOP, TEMP, radar, previsão sazonal', refresh_interval: '15min', target_types: ['WeatherEvent'] },
+  { id: 'src-ingd',      name: 'INGD Situation Reports',           type: 'api',       icon: '🏛',  description: 'Instituto Nacional de Gestão e Redução do Risco de Desastres',                    description_pt: 'Instituto Nacional de Gestão e Redução do Risco de Desastres', refresh_interval: '1h', target_types: ['AffectedArea','Mission','Resource'] },
+  { id: 'src-wfp-less',  name: 'WFP LESS Tracker',                 type: 'api',       icon: '🚛',  description: 'Logistics Execution Support System — supply chain, warehouse, dispatch',           description_pt: 'Sistema de Apoio à Execução Logística — cadeia de abastecimento, armazém, expedição', refresh_interval: '30min', target_types: ['SupplyChainItem','Resource'] },
+  { id: 'src-dhis2',     name: 'DHIS2 Health Surveillance',        type: 'api',       icon: '🏥',  description: 'Ministry of Health DHIS2 — IDSR, disease surveillance, malnutrition SMART',       description_pt: 'DHIS2 do Ministério da Saúde — IDSR, vigilância de doenças, desnutrição SMART', refresh_interval: '6h', target_types: ['HealthRisk'] },
+  { id: 'src-sentinel',  name: 'Sentinel-2 SAR (ESA Copernicus)',   type: 'satellite', icon: '🛰',  description: 'Synthetic aperture radar flood extent mapping, damage assessment',                  description_pt: 'Mapeamento de extensão de inundações por radar de abertura sintética, avaliação de danos', refresh_interval: '6h', target_types: ['AffectedArea','WeatherEvent'] },
+  { id: 'src-chirps',    name: 'CHIRPS Rainfall Data',              type: 'satellite', icon: '🌧',  description: 'Climate Hazards Group InfraRed Precipitation with Station data',                  description_pt: 'Precipitação InfraVermelho com dados de Estação do Grupo de Riscos Climáticos', refresh_interval: '24h', target_types: ['WeatherEvent'] },
+  { id: 'src-hdx',       name: 'HDX Open Data',                    type: 'api',       icon: '📊',  description: 'Humanitarian Data Exchange — population estimates, admin boundaries, 3W',          description_pt: 'Humanitarian Data Exchange — estimativas populacionais, limites administrativos, 3W', refresh_interval: '24h', target_types: ['AffectedArea','Organization'] },
+  { id: 'src-csv-upload',name: 'CSV/JSON File Upload',              type: 'file',      icon: '📁',  description: 'Manual upload of field reports, assessment data, resource lists',                  description_pt: 'Upload manual de relatórios de campo, dados de avaliação, listas de recursos', refresh_interval: 'on-demand', target_types: ['*'] },
 ];
 
 // GET all data sources
 router.get('/sources', (req, res) => {
   const db = getDB();
+  const lang = req.headers['x-lang'] || 'en';
+  const isPT = lang === 'pt';
 
   // Enrich with latest run stats
   const sources = DATA_SOURCES.map(src => {
     const lastRun = db.prepare(`SELECT * FROM pipeline_runs WHERE source=? ORDER BY created_at DESC LIMIT 1`).get(src.name);
-    return { ...src, last_run: lastRun || null };
+    return {
+      ...src,
+      description: isPT ? (src.description_pt || src.description) : src.description,
+      last_run: lastRun || null,
+    };
   });
 
   res.json(sources);

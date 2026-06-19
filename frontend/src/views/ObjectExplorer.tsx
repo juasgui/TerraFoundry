@@ -4,10 +4,12 @@ import { objectsApi, ontologyApi } from '../api/foundryApi';
 import type { FoundryObject, ObjectType } from '../types';
 import { useAppStore } from '../store/appStore';
 import { Badge, Button, Input, Select, Spinner, StatusDot } from '../components/ui';
+import { useT } from '../i18n/useT';
 
 const PAGE_SIZE = 20;
 
 export default function ObjectExplorer() {
+  const t = useT();
   const [objects, setObjects] = useState<FoundryObject[]>([]);
   const [total, setTotal] = useState(0);
   const [page, setPage] = useState(1);
@@ -48,7 +50,7 @@ export default function ObjectExplorer() {
           <Search size={13} className="absolute left-2.5 top-1/2 -translate-y-1/2 text-foundry-muted" />
           <Input
             className="pl-8"
-            placeholder="Search objects by name…"
+            placeholder={t('obj.searchObjects')}
             value={search}
             onChange={(e) => { setSearch(e.target.value); setPage(1); }}
           />
@@ -56,17 +58,17 @@ export default function ObjectExplorer() {
         <div className="flex items-center gap-2">
           <Filter size={13} className="text-foundry-muted" />
           <Select value={filterType} onChange={(e) => { setFilterType(e.target.value); setPage(1); }}>
-            <option value="">All Types</option>
+            <option value="">{t('obj.allTypes')}</option>
             {types.map((t) => <option key={t.id} value={t.id}>{t.label}</option>)}
           </Select>
           <Select value={filterStatus} onChange={(e) => { setFilterStatus(e.target.value); setPage(1); }}>
-            <option value="">All Statuses</option>
+            <option value="">{t('mis.allStatuses')}</option>
             {['active', 'inactive', 'critical', 'resolved', 'deployed', 'available', 'planning'].map((s) => (
               <option key={s} value={s}>{s}</option>
             ))}
           </Select>
           <Select value={filterSeverity} onChange={(e) => { setFilterSeverity(e.target.value); setPage(1); }}>
-            <option value="">All Severities</option>
+            <option value="">{t('obj.allSeverities')}</option>
             {['CRITICAL', 'HIGH', 'MEDIUM', 'LOW'].map((s) => <option key={s} value={s}>{s}</option>)}
           </Select>
         </div>
@@ -78,19 +80,19 @@ export default function ObjectExplorer() {
         {loading ? (
           <div className="flex items-center justify-center h-32 gap-3">
             <Spinner />
-            <span className="text-foundry-muted text-sm">Loading…</span>
+            <span className="text-foundry-muted text-sm">{t('common.loading')}</span>
           </div>
         ) : (
           <table className="w-full text-xs border-collapse">
             <thead className="sticky top-0 bg-foundry-surface z-10">
               <tr className="border-b border-foundry-border">
                 <th className="text-left px-4 py-2.5 text-foundry-muted font-semibold uppercase tracking-wider w-8"></th>
-                <th className="text-left px-4 py-2.5 text-foundry-muted font-semibold uppercase tracking-wider">Name</th>
-                <th className="text-left px-4 py-2.5 text-foundry-muted font-semibold uppercase tracking-wider w-32">Type</th>
-                <th className="text-left px-4 py-2.5 text-foundry-muted font-semibold uppercase tracking-wider w-24">Status</th>
-                <th className="text-left px-4 py-2.5 text-foundry-muted font-semibold uppercase tracking-wider w-24">Severity</th>
-                <th className="text-left px-4 py-2.5 text-foundry-muted font-semibold uppercase tracking-wider w-32">Location</th>
-                <th className="text-left px-4 py-2.5 text-foundry-muted font-semibold uppercase tracking-wider w-36">Updated</th>
+                <th className="text-left px-4 py-2.5 text-foundry-muted font-semibold uppercase tracking-wider">{t('obj.colName')}</th>
+                <th className="text-left px-4 py-2.5 text-foundry-muted font-semibold uppercase tracking-wider w-32">{t('obj.colType')}</th>
+                <th className="text-left px-4 py-2.5 text-foundry-muted font-semibold uppercase tracking-wider w-24">{t('obj.colStatus')}</th>
+                <th className="text-left px-4 py-2.5 text-foundry-muted font-semibold uppercase tracking-wider w-24">{t('obj.colSeverity')}</th>
+                <th className="text-left px-4 py-2.5 text-foundry-muted font-semibold uppercase tracking-wider w-32">{t('obj.colLocation')}</th>
+                <th className="text-left px-4 py-2.5 text-foundry-muted font-semibold uppercase tracking-wider w-36">{t('obj.colUpdated')}</th>
                 <th className="w-10"></th>
               </tr>
             </thead>
@@ -102,7 +104,7 @@ export default function ObjectExplorer() {
           </table>
         )}
         {!loading && objects.length === 0 && (
-          <div className="flex items-center justify-center h-32 text-foundry-muted text-sm">No objects match your filters.</div>
+          <div className="flex items-center justify-center h-32 text-foundry-muted text-sm">{t('obj.noObjects')}</div>
         )}
       </div>
 

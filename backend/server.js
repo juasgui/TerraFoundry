@@ -25,11 +25,12 @@ app.use('/api/assets',      require('./routes/assets'));
 app.use('/api/missions',    require('./routes/missions'));
 app.use('/api/pipelines',   require('./routes/pipelines'));
 app.use('/api/ai',          require('./routes/ai'));
-app.use('/api/workshop',    require('./routes/workshop'));
-app.use('/api/reports',     require('./routes/reports'));
+app.use('/api/workshop',      require('./routes/workshop'));
+app.use('/api/reports',       require('./routes/reports'));
+app.use('/api/intelligence',  require('./routes/intelligence'));
 
 app.get('/api/health', (req, res) => {
-  res.json({ status: 'operational', platform: 'Terra Foundry v2', ts: new Date().toISOString() });
+  res.json({ status: 'operational', platform: 'Terra v3', ts: new Date().toISOString() });
 });
 
 // ── Error handler ─────────────────────────────────────────────────────────────
@@ -40,7 +41,7 @@ app.use((err, req, res, next) => {
 
 app.listen(PORT, () => {
   console.log('\n╔══════════════════════════════════════════════════╗');
-  console.log('║  TERRA FOUNDRY v2 — Ontology-Driven Platform    ║');
+  console.log('║  TERRA v3 — National Climate Intelligence System ║');
   console.log(`║  API: http://localhost:${PORT}                      ║`);
   console.log('╚══════════════════════════════════════════════════╝\n');
 });

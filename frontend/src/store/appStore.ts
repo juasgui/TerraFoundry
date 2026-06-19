@@ -2,6 +2,10 @@ import { create } from 'zustand';
 import type { FoundryObject, Alert, Mission, DashboardMetrics, ChatMessage } from '../types';
 
 interface AppState {
+  // language
+  language: 'en' | 'pt';
+  setLanguage: (lang: 'en' | 'pt') => void;
+
   // navigation
   activeView: string;
   setActiveView: (v: string) => void;
@@ -56,6 +60,9 @@ interface AppState {
 }
 
 export const useAppStore = create<AppState>((set, get) => ({
+  language: (localStorage.getItem('terra_lang') as 'en' | 'pt') ?? 'en',
+  setLanguage: (lang) => { localStorage.setItem('terra_lang', lang); set({ language: lang }); },
+
   activeView: 'control-center',
   setActiveView: (v) => set({ activeView: v }),
 

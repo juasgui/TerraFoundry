@@ -4,9 +4,33 @@ const router = express.Router();
 const { getDB } = require('../db/database');
 const { v4: uuidv4 } = require('uuid');
 
+const TYPE_LABELS_PT = {
+  'Weather Event': 'Evento Meteorológico',
+  'Affected Area': 'Área Afectada',
+  'Resource / Asset': 'Recurso / Activo',
+  'Organization': 'Organização',
+  'Health Risk': 'Risco de Saúde',
+  'Supply Chain Item': 'Item de Cadeia de Abastecimento',
+  'Mission': 'Missão',
+  'Health Facility': 'Unidade de Saúde',
+  'River / Waterway': 'Rio / Via Navegável',
+  'Infrastructure': 'Infraestrutura',
+  'Power Station': 'Central Elétrica',
+  'Telecom / Network': 'Telecom / Rede',
+  'Water Facility': 'Instalação Hídrica',
+  'Crop / Agri Zone': 'Zona Agrícola',
+  'Person at Risk': 'Pessoa em Risco',
+  'Shelter / IDP Site': 'Abrigo / Campo de Deslocados',
+};
+
+function translateType(label, isPT) {
+  return isPT ? (TYPE_LABELS_PT[label] || label) : label;
+}
+
 // GET objects — search, filter, paginate
 router.get('/', (req, res) => {
   const db = getDB();
+  const isPT = (req.headers['x-lang'] || 'en') === 'pt';
   const { q, type_id, status, severity, page = 1, limit = 50 } = req.query;
   const offset = (page - 1) * limit;
 
@@ -34,7 +58,10 @@ router.get('/', (req, res) => {
     LIMIT ? OFFSET ?
   `).all(...params, Number(limit), Number(offset));
 
-  objects.forEach(o => { try { o.properties = JSON.parse(o.properties); } catch { o.properties = {}; } });
+  objects.forEach(o => {
+    try { o.properties = JSON.parse(o.properties); } catch { o.properties = {}; }
+    if (isPT) o.type_label = translateType(o.type_label, true);
+  });
 
   res.json({ total, page: Number(page), limit: Number(limit), objects });
 });
@@ -42,6 +69,7 @@ router.get('/', (req, res) => {
 // GET single object with full 360° context
 router.get('/:id', (req, res) => {
   const db = getDB();
+  const isPT = (req.headers['x-lang'] || 'en') === 'pt';
   const obj = db.prepare(`
     SELECT o.*, ot.label as type_label, ot.icon as type_icon, ot.color as type_color
     FROM objects o JOIN object_types ot ON ot.id = o.type_id
@@ -84,8 +112,15 @@ router.get('/:id', (req, res) => {
     ORDER BY lt.label
   `).all(req.params.id);
 
-  obj.links_out.forEach(l => { try { l.metadata = JSON.parse(l.metadata); } catch {} });
-  obj.links_in.forEach(l => { try { l.metadata = JSON.parse(l.metadata); } catch {} });
+  obj.links_out.forEach(l => {
+    try { l.metadata = JSON.parse(l.metadata); } catch {}
+    if (isPT) l.target_type_label = translateType(l.target_type_label, true);
+  });
+  obj.links_in.forEach(l => {
+    try { l.metadata = JSON.parse(l.metadata); } catch {}
+    if (isPT) l.source_type_label = translateType(l.source_type_label, true);
+  });
+  if (isPT) obj.type_label = translateType(obj.type_label, true);
 
   // Timeline events
   obj.timeline = db.prepare(`

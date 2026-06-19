@@ -3,8 +3,12 @@ import { Target, Plus, ChevronRight } from 'lucide-react';
 import { missionsApi } from '../api/foundryApi';
 import type { Mission } from '../types';
 import { Badge, Button, Input, Select, Spinner, StatusDot } from '../components/ui';
+import { useT } from '../i18n/useT';
+import { useAppStore } from '../store/appStore';
 
 export default function MissionsView() {
+  const t = useT();
+  const language = useAppStore((s) => s.language);
   const [missions, setMissions] = useState<Mission[]>([]);
   const [selected, setSelected] = useState<(Mission & { resources?: unknown[]; organizations?: unknown[]; timeline?: unknown[] }) | null>(null);
   const [loading, setLoading] = useState(true);
@@ -15,7 +19,7 @@ export default function MissionsView() {
 
   const load = () => missionsApi.list().then(setMissions).finally(() => setLoading(false));
 
-  useEffect(() => { load(); }, []);
+  useEffect(() => { load(); }, [language]);
 
   const openMission = async (m: Mission) => {
     setDetailLoading(true);
@@ -52,7 +56,7 @@ export default function MissionsView() {
   const priorityColors: Record<string, string> = { CRITICAL: '#ff3a3a', HIGH: '#ff8c00', MEDIUM: '#ffcc00', LOW: '#64748b' };
 
   if (loading) {
-    return <div className="flex items-center justify-center h-full gap-3"><Spinner size={18} /><span className="text-foundry-muted text-sm">Loading missions…</span></div>;
+    return <div className="flex items-center justify-center h-full gap-3"><Spinner size={18} /><span className="text-foundry-muted text-sm">{t('common.loading')}</span></div>;
   }
 
   return (
@@ -60,8 +64,8 @@ export default function MissionsView() {
       {/* Mission list */}
       <div className="w-72 shrink-0 border-r border-foundry-border bg-foundry-surface flex flex-col">
         <div className="flex items-center justify-between px-4 py-3 border-b border-foundry-border">
-          <span className="text-xs font-semibold uppercase tracking-widest text-foundry-muted">Missions ({missions.length})</span>
-          <Button variant="ghost" size="xs" icon={<Plus size={12} />} onClick={() => setShowNew(!showNew)}>New</Button>
+          <span className="text-xs font-semibold uppercase tracking-widest text-foundry-muted">{t('mis.title')} ({missions.length})</span>
+          <Button variant="ghost" size="xs" icon={<Plus size={12} />} onClick={() => setShowNew(!showNew)}>{t('common.add')}</Button>
         </div>
         {showNew && (
           <div className="p-3 border-b border-foundry-border bg-foundry-card space-y-2">
@@ -108,12 +112,12 @@ export default function MissionsView() {
       {/* Mission detail */}
       <div className="flex-1 overflow-y-auto p-4">
         {detailLoading && (
-          <div className="flex items-center gap-3 py-8"><Spinner /><span className="text-foundry-muted text-sm">Loading…</span></div>
+          <div className="flex items-center gap-3 py-8"><Spinner /><span className="text-foundry-muted text-sm">{t('mis.detailLoading')}</span></div>
         )}
         {!selected && !detailLoading && (
           <div className="flex flex-col items-center justify-center h-full text-center">
             <Target size={32} className="text-foundry-muted opacity-30 mb-4" />
-            <p className="text-foundry-muted text-sm">Select a mission to view details</p>
+            <p className="text-foundry-muted text-sm">{t('mis.selectMission')}</p>
           </div>
         )}
         {selected && !detailLoading && (

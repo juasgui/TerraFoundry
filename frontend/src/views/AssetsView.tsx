@@ -3,11 +3,15 @@ import { Package, CheckCircle, Truck, Wrench, AlertCircle } from 'lucide-react';
 import { assetsApi, missionsApi } from '../api/foundryApi';
 import type { Asset, Mission } from '../types';
 import { Badge, Button, Select, Spinner, StatusDot } from '../components/ui';
+import { useT } from '../i18n/useT';
+import { useAppStore } from '../store/appStore';
 
 type StatusFlow = 'available' | 'deployed' | 'in_transit' | 'maintenance';
 const FLOW: StatusFlow[] = ['available', 'deployed', 'in_transit', 'maintenance'];
 
 export default function AssetsView() {
+  const t = useT();
+  const language = useAppStore((s) => s.language);
   const [assets, setAssets] = useState<Asset[]>([]);
   const [missions, setMissions] = useState<Mission[]>([]);
   const [loading, setLoading] = useState(true);
@@ -22,7 +26,7 @@ export default function AssetsView() {
 
   useEffect(() => {
     load().finally(() => setLoading(false));
-  }, []);
+  }, [language]);
 
   const setStatus = async (id: string, status: string) => {
     setWorking(w => ({ ...w, [id]: true }));
@@ -71,7 +75,7 @@ export default function AssetsView() {
   };
 
   if (loading) {
-    return <div className="flex items-center justify-center h-full gap-3"><Spinner size={18} /><span className="text-foundry-muted text-sm">Loading assets…</span></div>;
+    return <div className="flex items-center justify-center h-full gap-3"><Spinner size={18} /><span className="text-foundry-muted text-sm">{t('common.loading')}</span></div>;
   }
 
   return (
@@ -100,12 +104,12 @@ export default function AssetsView() {
         <table className="w-full text-xs border-collapse">
           <thead className="sticky top-0 bg-foundry-surface z-10">
             <tr className="border-b border-foundry-border">
-              <th className="text-left px-4 py-2.5 text-foundry-muted font-semibold uppercase tracking-wider">Asset</th>
-              <th className="text-left px-4 py-2.5 text-foundry-muted font-semibold uppercase tracking-wider w-28">Status</th>
-              <th className="text-left px-4 py-2.5 text-foundry-muted font-semibold uppercase tracking-wider w-28">Type</th>
-              <th className="text-left px-4 py-2.5 text-foundry-muted font-semibold uppercase tracking-wider">Location</th>
-              <th className="text-left px-4 py-2.5 text-foundry-muted font-semibold uppercase tracking-wider">Mission</th>
-              <th className="text-left px-4 py-2.5 text-foundry-muted font-semibold uppercase tracking-wider w-64">Actions</th>
+              <th className="text-left px-4 py-2.5 text-foundry-muted font-semibold uppercase tracking-wider">{t('ast.colAsset')}</th>
+              <th className="text-left px-4 py-2.5 text-foundry-muted font-semibold uppercase tracking-wider w-28">{t('common.status')}</th>
+              <th className="text-left px-4 py-2.5 text-foundry-muted font-semibold uppercase tracking-wider w-28">{t('common.type')}</th>
+              <th className="text-left px-4 py-2.5 text-foundry-muted font-semibold uppercase tracking-wider">{t('common.location')}</th>
+              <th className="text-left px-4 py-2.5 text-foundry-muted font-semibold uppercase tracking-wider">{t('mis.title')}</th>
+              <th className="text-left px-4 py-2.5 text-foundry-muted font-semibold uppercase tracking-wider w-64">{t('common.actions')}</th>
             </tr>
           </thead>
           <tbody className="divide-y divide-foundry-border">
@@ -125,7 +129,7 @@ export default function AssetsView() {
         {filtered.length === 0 && (
           <div className="flex items-center justify-center h-32 text-foundry-muted text-sm">
             <AlertCircle size={16} className="mr-2" />
-            No assets with status "{filter}".
+            {t('ast.noAssetsFilter', { s: filter })}
           </div>
         )}
       </div>
@@ -141,6 +145,7 @@ function AssetRow({ asset, missions, working, onSetStatus, onAssign, onUnassign 
   onAssign: (mId: string) => void;
   onUnassign: () => void;
 }) {
+  const t = useT();
   const [missionPick, setMissionPick] = useState('');
   const nextStatuses: Record<string, string[]> = {
     available: ['deployed', 'maintenance'],
@@ -168,7 +173,7 @@ function AssetRow({ asset, missions, working, onSetStatus, onAssign, onUnassign 
         {asset.assigned_mission_name ? (
           <span className="text-foundry-accent text-[11px]">◎ {asset.assigned_mission_name}</span>
         ) : (
-          <span className="text-foundry-muted text-[11px]">Unassigned</span>
+          <span className="text-foundry-muted text-[11px]">{t('ast.unassigned')}</span>
         )}
       </td>
       <td className="px-4 py-3">
@@ -191,7 +196,7 @@ function AssetRow({ asset, missions, working, onSetStatus, onAssign, onUnassign 
                 value={missionPick}
                 onChange={(e) => setMissionPick(e.target.value)}
               >
-                <option value="">Assign…</option>
+                <option value="">{t('ast.assign')}</option>
                 {missions.map((m) => <option key={m.id} value={m.id}>{m.name}</option>)}
               </Select>
               {missionPick && (
@@ -200,7 +205,7 @@ function AssetRow({ asset, missions, working, onSetStatus, onAssign, onUnassign 
             </div>
           )}
           {asset.assigned_mission_id && (
-            <Button variant="ghost" size="xs" loading={working} onClick={onUnassign}>Unassign</Button>
+            <Button variant="ghost" size="xs" loading={working} onClick={onUnassign}>{t('ast.unassign')}</Button>
           )}
         </div>
       </td>

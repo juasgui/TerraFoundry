@@ -2,9 +2,11 @@ import React, { useEffect, useRef, useState } from 'react';
 import { Bell, Search, ChevronDown, RefreshCw, Shield, User } from 'lucide-react';
 import { useAppStore } from '../../store/appStore';
 import { missionsApi, dashboardApi } from '../../api/foundryApi';
+import { useT } from '../../i18n/useT';
 
 export default function Topbar() {
-  const { alerts, setAlerts, setMetrics, missions, setMissions, activeMission, setActiveMission, globalSearch, setGlobalSearch } = useAppStore();
+  const { alerts, setAlerts, setMetrics, missions, setMissions, activeMission, setActiveMission, globalSearch, setGlobalSearch, language, setLanguage } = useAppStore();
+  const t = useT();
   const [missionOpen, setMissionOpen] = useState(false);
   const [refreshing, setRefreshing] = useState(false);
   const missionRef = useRef<HTMLDivElement>(null);
@@ -38,7 +40,7 @@ export default function Topbar() {
       {/* Classification banner */}
       <div className="flex items-center gap-1.5 px-2 py-0.5 rounded bg-emerald-900/30 border border-emerald-700/30">
         <Shield size={11} className="text-emerald-400" />
-        <span className="text-[10px] font-bold text-emerald-400 uppercase tracking-wider">UNCLASSIFIED</span>
+        <span className="text-[10px] font-bold text-emerald-400 uppercase tracking-wider">{t('platform.classification')}</span>
       </div>
 
       {/* Mission selector */}
@@ -48,7 +50,7 @@ export default function Topbar() {
           className="flex items-center gap-2 px-3 py-1.5 rounded bg-foundry-card border border-foundry-border text-xs text-foundry-text-dim hover:text-foundry-text hover:border-foundry-accent/40 transition-colors"
         >
           <span className="text-foundry-accent">◎</span>
-          <span>{activeMission?.name ?? 'All Missions'}</span>
+          <span>{activeMission?.name ?? t('topbar.allMissions')}</span>
           <ChevronDown size={11} />
         </button>
         {missionOpen && (
@@ -57,7 +59,7 @@ export default function Topbar() {
               onClick={() => { setActiveMission(null); setMissionOpen(false); }}
               className="w-full text-left px-3 py-2 text-xs text-foundry-text-dim hover:bg-foundry-hover hover:text-foundry-text"
             >
-              All Missions
+              {t('topbar.allMissions')}
             </button>
             {missions.map((m) => (
               <button
@@ -78,7 +80,7 @@ export default function Topbar() {
         <Search size={13} className="absolute left-2.5 top-1/2 -translate-y-1/2 text-foundry-muted pointer-events-none" />
         <input
           type="text"
-          placeholder="Search objects, alerts…"
+          placeholder={t('topbar.searchPlaceholder')}
           value={globalSearch}
           onChange={(e) => setGlobalSearch(e.target.value)}
           className="w-full bg-foundry-card border border-foundry-border rounded pl-8 pr-3 py-1.5 text-xs text-foundry-text placeholder-foundry-muted focus:outline-none focus:border-foundry-accent/50 transition-colors"
@@ -94,10 +96,23 @@ export default function Topbar() {
       <button
         onClick={handleRefresh}
         className="p-1.5 text-foundry-muted hover:text-foundry-accent transition-colors"
-        title="Refresh dashboard"
+        title={t('topbar.refresh')}
       >
         <RefreshCw size={14} className={refreshing ? 'animate-spin' : ''} />
       </button>
+
+      {/* Language toggle */}
+      <div className="flex items-center rounded border border-foundry-border overflow-hidden text-[10px] font-bold">
+        <button
+          onClick={() => setLanguage('en')}
+          className={`px-2 py-1 transition-colors ${language === 'en' ? 'bg-foundry-accent/20 text-foundry-accent' : 'text-foundry-muted hover:text-foundry-text'}`}
+        >EN</button>
+        <div className="w-px h-3 bg-foundry-border" />
+        <button
+          onClick={() => setLanguage('pt')}
+          className={`px-2 py-1 transition-colors ${language === 'pt' ? 'bg-foundry-accent/20 text-foundry-accent' : 'text-foundry-muted hover:text-foundry-text'}`}
+        >PT</button>
+      </div>
 
       {/* Alerts bell */}
       <button className="relative p-1.5 text-foundry-muted hover:text-foundry-text transition-colors">
@@ -114,7 +129,7 @@ export default function Topbar() {
         <div className="w-6 h-6 rounded-full bg-foundry-accent/20 border border-foundry-accent/40 flex items-center justify-center">
           <User size={12} className="text-foundry-accent" />
         </div>
-        <span className="text-xs text-foundry-text-dim hidden md:block">Operator</span>
+        <span className="text-xs text-foundry-text-dim hidden md:block">{t('topbar.operator')}</span>
       </div>
     </header>
   );

@@ -3,6 +3,8 @@ import { Plus, Trash2, Edit3, Eye, Save, X, LayoutGrid } from 'lucide-react';
 import { workshopApi } from '../api/foundryApi';
 import type { WorkshopLayout, WorkshopWidget } from '../types';
 import { Button, Card, Input, Spinner } from '../components/ui';
+import { useT } from '../i18n/useT';
+import { useAppStore } from '../store/appStore';
 
 const WIDGET_ICONS: Record<string, string> = {
   metric: '📊', map: '🗺', chart: '📈', table: '📋',
@@ -10,6 +12,8 @@ const WIDGET_ICONS: Record<string, string> = {
 };
 
 export default function Workshop() {
+  const t = useT();
+  const language = useAppStore((s) => s.language);
   const [layouts, setLayouts] = useState<WorkshopLayout[]>([]);
   const [widgetTypes, setWidgetTypes] = useState<{ type: string; label: string; description: string }[]>([]);
   const [loading, setLoading] = useState(true);
@@ -26,7 +30,7 @@ export default function Workshop() {
     setWidgetTypes(wt);
   };
 
-  useEffect(() => { load().finally(() => setLoading(false)); }, []);
+  useEffect(() => { load().finally(() => setLoading(false)); }, [language]);
 
   const create = async () => {
     if (!newName) return;
@@ -76,7 +80,7 @@ export default function Workshop() {
   };
 
   if (loading) {
-    return <div className="flex items-center justify-center h-full gap-3"><Spinner size={18} /><span className="text-foundry-muted text-sm">Loading Workshop…</span></div>;
+    return <div className="flex items-center justify-center h-full gap-3"><Spinner size={18} /><span className="text-foundry-muted text-sm">{t('common.loading')}</span></div>;
   }
 
   // Preview mode
@@ -85,12 +89,12 @@ export default function Workshop() {
       <div className="h-full flex flex-col overflow-hidden">
         <div className="flex items-center gap-3 px-4 py-3 border-b border-foundry-border bg-foundry-surface shrink-0">
           <span className="text-xs font-semibold text-foundry-text">{preview.name}</span>
-          <span className="text-[10px] text-foundry-muted ml-2">Preview Mode</span>
-          <Button variant="ghost" size="xs" icon={<X size={12} />} className="ml-auto" onClick={() => setPreview(null)}>Exit Preview</Button>
+          <span className="text-[10px] text-foundry-muted ml-2">{t('wks.previewMode')}</span>
+          <Button variant="ghost" size="xs" icon={<X size={12} />} className="ml-auto" onClick={() => setPreview(null)}>{t('wks.exitPreview')}</Button>
         </div>
         <div className="flex-1 overflow-auto p-4">
           {preview.widgets.length === 0 ? (
-            <div className="flex items-center justify-center h-full text-foundry-muted text-sm">No widgets in this layout.</div>
+            <div className="flex items-center justify-center h-full text-foundry-muted text-sm">{t('wks.noWidgets')}</div>
           ) : (
             <div className="grid grid-cols-3 gap-4 auto-rows-min">
               {preview.widgets.map((w) => <WidgetPreview key={w.id} widget={w} />)}
@@ -108,7 +112,7 @@ export default function Workshop() {
         {/* Widget palette */}
         <div className="w-52 shrink-0 border-r border-foundry-border bg-foundry-surface flex flex-col">
           <div className="px-4 py-3 border-b border-foundry-border">
-            <span className="text-xs font-semibold uppercase tracking-widest text-foundry-muted">Widget Palette</span>
+            <span className="text-xs font-semibold uppercase tracking-widest text-foundry-muted">{t('wks.widgetPalette')}</span>
           </div>
           <div className="flex-1 overflow-y-auto p-3 space-y-1.5">
             {widgetTypes.map((wt) => (
@@ -139,9 +143,9 @@ export default function Workshop() {
             />
             <span className="text-[10px] text-foundry-muted">{editing.widgets.length} widgets</span>
             <div className="ml-auto flex gap-2">
-              <Button variant="secondary" size="xs" icon={<Eye size={12} />} onClick={() => setPreview(editing)}>Preview</Button>
-              <Button variant="primary" size="xs" icon={<Save size={12} />} loading={saving} onClick={save}>Save</Button>
-              <Button variant="ghost" size="xs" icon={<X size={12} />} onClick={() => setEditing(null)}>Close</Button>
+              <Button variant="secondary" size="xs" icon={<Eye size={12} />} onClick={() => setPreview(editing)}>{t('wks.preview')}</Button>
+              <Button variant="primary" size="xs" icon={<Save size={12} />} loading={saving} onClick={save}>{t('common.save')}</Button>
+              <Button variant="ghost" size="xs" icon={<X size={12} />} onClick={() => setEditing(null)}>{t('common.close')}</Button>
             </div>
           </div>
 
@@ -150,7 +154,7 @@ export default function Workshop() {
             {editing.widgets.length === 0 ? (
               <div className="flex flex-col items-center justify-center h-64 border-2 border-dashed border-foundry-border rounded-xl text-center">
                 <LayoutGrid size={28} className="text-foundry-muted mb-3 opacity-40" />
-                <p className="text-sm text-foundry-muted">Click widgets in the palette to add them to your dashboard</p>
+                <p className="text-sm text-foundry-muted">{t('wks.emptyCanvas')}</p>
               </div>
             ) : (
               <div className="grid grid-cols-3 gap-4 auto-rows-min">
@@ -178,17 +182,17 @@ export default function Workshop() {
     <div className="h-full overflow-y-auto p-4">
       <div className="flex items-center justify-between mb-4">
         <div>
-          <h2 className="text-sm font-semibold text-foundry-text">Workshop</h2>
-          <p className="text-xs text-foundry-muted mt-0.5">Build custom dashboards from live ontology data</p>
+          <h2 className="text-sm font-semibold text-foundry-text">{t('wks.title')}</h2>
+          <p className="text-xs text-foundry-muted mt-0.5">{t('wks.subtitle')}</p>
         </div>
-        <Button variant="primary" size="sm" icon={<Plus size={13} />} onClick={() => setShowNew(!showNew)}>New Layout</Button>
+        <Button variant="primary" size="sm" icon={<Plus size={13} />} onClick={() => setShowNew(!showNew)}>{t('wks.newLayout')}</Button>
       </div>
 
       {showNew && (
         <div className="flex items-center gap-3 p-4 mb-4 bg-foundry-card border border-foundry-border rounded-lg">
-          <Input placeholder="Layout name…" value={newName} onChange={e => setNewName(e.target.value)} className="flex-1" />
-          <Button variant="primary" size="sm" loading={creating} onClick={create}>Create</Button>
-          <Button variant="ghost" size="sm" onClick={() => setShowNew(false)}>Cancel</Button>
+          <Input placeholder={t('wks.layoutNamePlaceholder')} value={newName} onChange={e => setNewName(e.target.value)} className="flex-1" />
+          <Button variant="primary" size="sm" loading={creating} onClick={create}>{t('wks.create')}</Button>
+          <Button variant="ghost" size="sm" onClick={() => setShowNew(false)}>{t('common.cancel')}</Button>
         </div>
       )}
 
@@ -211,7 +215,7 @@ export default function Workshop() {
             {/* Widget grid preview */}
             <div className="p-3">
               {l.widgets.length === 0 ? (
-                <div className="text-xs text-foundry-muted text-center py-4">Empty layout</div>
+                <div className="text-xs text-foundry-muted text-center py-4">{t('wks.emptyLayout')}</div>
               ) : (
                 <div className="grid grid-cols-3 gap-1.5">
                   {l.widgets.slice(0, 9).map((w) => (
@@ -230,7 +234,7 @@ export default function Workshop() {
         {layouts.length === 0 && (
           <div className="col-span-3 flex flex-col items-center justify-center py-16 text-center">
             <LayoutGrid size={32} className="text-foundry-muted mb-4 opacity-30" />
-            <p className="text-foundry-muted text-sm">No layouts yet. Create your first Workshop dashboard.</p>
+            <p className="text-foundry-muted text-sm">{t('wks.noLayouts')}</p>
           </div>
         )}
       </div>
@@ -239,10 +243,12 @@ export default function Workshop() {
 }
 
 function WidgetPreview({ widget }: { widget: WorkshopWidget }) {
+  const t = useT();
   const icons: Record<string, string> = {
     metric: '📊', map: '🗺', chart: '📈', table: '📋',
     alerts: '🔔', timeline: '⏱', text: '📝', search: '🔍',
   };
+  const widgetDescKey = `wks.widgetDesc.${widget.type}`;
   return (
     <div className="bg-foundry-card border border-foundry-border rounded-lg p-3 min-h-24">
       <div className="flex items-center gap-2 mb-2 border-b border-foundry-border pb-2">
@@ -250,14 +256,7 @@ function WidgetPreview({ widget }: { widget: WorkshopWidget }) {
         <span className="text-xs font-medium text-foundry-text">{widget.title}</span>
       </div>
       <div className="text-[10px] text-foundry-muted italic">
-        {widget.type === 'metric' && '— Live KPI metric —'}
-        {widget.type === 'map' && '— Leaflet map —'}
-        {widget.type === 'chart' && '— Chart visualization —'}
-        {widget.type === 'table' && '— Object table —'}
-        {widget.type === 'alerts' && '— Live alert feed —'}
-        {widget.type === 'timeline' && '— Event timeline —'}
-        {widget.type === 'text' && '— Rich text —'}
-        {widget.type === 'search' && '— Search widget —'}
+        {t(widgetDescKey)}
       </div>
     </div>
   );

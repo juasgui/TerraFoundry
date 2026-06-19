@@ -3,13 +3,17 @@ import type {
   Alert, OntologyEvent, Mission, DashboardMetrics, ChartData,
   Asset, PipelineSource, PipelineRun, WorkshopLayout, WorkshopWidget,
   MapObject, FloodZone, SituationReport,
+  DecisionIntel, ImpactAnalysis, SimulationResult, AiBriefing,
+  ImpactChainResult, RootCauseResult, VulnerabilityResult,
+  HistoricalResult, CompareResult, IntelWorkbenchSummary,
 } from '../types';
 
 const BASE = '/api';
 
 async function req<T>(path: string, options?: RequestInit): Promise<T> {
+  const lang = localStorage.getItem('terra_lang') ?? 'en';
   const res = await fetch(`${BASE}${path}`, {
-    headers: { 'Content-Type': 'application/json' },
+    headers: { 'Content-Type': 'application/json', 'X-Lang': lang },
     ...options,
   });
   if (!res.ok) throw new Error(`API ${path}: ${res.status}`);
@@ -60,6 +64,10 @@ export const dashboardApi = {
   provinceMatrix: () => req<{ province: string; affected: number; displaced: number; severity: string }[]>('/dashboard/province-matrix'),
   acknowledgeAlert: (id: string) =>
     req<{ success: boolean }>(`/dashboard/alerts/${id}/acknowledge`, { method: 'POST' }),
+  decisionIntel: () => req<DecisionIntel>('/dashboard/decision-intel'),
+  impactAnalysis: (objectId: string) => req<ImpactAnalysis>(`/dashboard/impact-analysis/${objectId}`),
+  simulate: (params: Partial<SimulationResult['inputs']>) =>
+    req<SimulationResult>('/dashboard/simulate', { method: 'POST', body: JSON.stringify(params) }),
 };
 
 // ── Map ──────────────────────────────────────────────────────────────────────
@@ -120,6 +128,8 @@ export const aiApi = {
     req<{ role: string; content: string; intent?: string; session_id: string }>(
       '/ai/chat', { method: 'POST', body: JSON.stringify({ message, session_id }) }
     ),
+  briefing: () => req<AiBriefing>('/ai/briefing'),
+  insights: () => req<{ type: string; severity: string; title: string; text: string; icon: string }[]>('/ai/insights'),
 };
 
 // ── Workshop ────────────────────────────────────────────────────────────────
@@ -133,6 +143,23 @@ export const workshopApi = {
   delete: (id: string) =>
     req<{ success: boolean }>(`/workshop/${id}`, { method: 'DELETE' }),
   widgetTypes: () => req<{ type: string; label: string; icon: string; description: string }[]>('/workshop/meta/widget-types'),
+};
+
+// ── Intelligence ──────────────────────────────────────────────────────────────
+export const intelligenceApi = {
+  summary:     () => req<IntelWorkbenchSummary>('/intelligence/summary'),
+  objects:     (params: { type_id?: string; q?: string } = {}) => {
+    const qs = new URLSearchParams(Object.entries(params).filter(([, v]) => v != null) as [string, string][]);
+    return req<FoundryObject[]>(`/intelligence/objects?${qs}`);
+  },
+  impactChain: (objectId: string, depth = 4) =>
+    req<ImpactChainResult>(`/intelligence/impact-chain/${objectId}?depth=${depth}`),
+  rootCause:   (objectId: string) =>
+    req<RootCauseResult>(`/intelligence/root-cause/${objectId}`),
+  vulnerability: () => req<VulnerabilityResult>('/intelligence/vulnerability'),
+  historical:  () => req<HistoricalResult>('/intelligence/historical'),
+  compare:     (a: string, b: string) =>
+    req<CompareResult>(`/intelligence/compare?a=${a}&b=${b}`),
 };
 
 // ── Reports ──────────────────────────────────────────────────────────────────

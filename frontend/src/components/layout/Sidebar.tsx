@@ -3,30 +3,34 @@ import { useNavigate, useLocation } from 'react-router-dom';
 import {
   LayoutDashboard, Network, Search, Map, Package,
   GitBranch, Wrench, Bot, FileText, ChevronLeft, ChevronRight,
-  Target,
+  Target, Brain, Shield, Zap, Cpu,
 } from 'lucide-react';
+import { useT } from '../../i18n/useT';
 
 const NAV_ITEMS = [
-  { id: 'control-center', path: '/',           icon: LayoutDashboard, label: 'Control Center',  group: 'ops' },
-  { id: 'ontology',        path: '/ontology',   icon: Network,          label: 'Ontology',        group: 'data' },
-  { id: 'objects',         path: '/objects',    icon: Search,           label: 'Object Explorer', group: 'data' },
-  { id: 'maps',            path: '/maps',       icon: Map,              label: 'Maps',            group: 'ops' },
-  { id: 'assets',          path: '/assets',     icon: Package,          label: 'Assets',          group: 'ops' },
-  { id: 'missions',        path: '/missions',   icon: Target,           label: 'Missions',        group: 'ops' },
-  { id: 'pipelines',       path: '/pipelines',  icon: GitBranch,        label: 'Pipelines',       group: 'data' },
-  { id: 'workshop',        path: '/workshop',   icon: Wrench,           label: 'Workshop',        group: 'build' },
-  { id: 'ai',              path: '/ai',         icon: Bot,              label: 'AI Assistant',    group: 'build' },
-  { id: 'reports',         path: '/reports',    icon: FileText,         label: 'Reports',         group: 'build' },
+  { id: 'decision-center', path: '/',            icon: Brain,           tKey: 'nav.decisionCenter',        group: 'intel' },
+  { id: 'commander',       path: '/commander',   icon: Shield,          tKey: 'nav.commanderView',         group: 'intel' },
+  { id: 'ai',              path: '/ai',          icon: Bot,             tKey: 'nav.aiOpsOfficer',          group: 'intel' },
+  { id: 'simulate',        path: '/simulate',    icon: Zap,             tKey: 'nav.simulationLab',         group: 'intel' },
+  { id: 'intelligence',    path: '/intelligence',icon: Cpu,             tKey: 'nav.intelligenceWorkbench', group: 'intel' },
+  { id: 'maps',            path: '/maps',        icon: Map,             tKey: 'nav.maps',                  group: 'ops' },
+  { id: 'assets',          path: '/assets',      icon: Package,         tKey: 'nav.assets',                group: 'ops' },
+  { id: 'missions',        path: '/missions',    icon: Target,          tKey: 'nav.missions',              group: 'ops' },
+  { id: 'ontology',        path: '/ontology',    icon: Network,         tKey: 'nav.ontology',              group: 'data' },
+  { id: 'objects',         path: '/objects',     icon: Search,          tKey: 'nav.objectExplorer',        group: 'data' },
+  { id: 'pipelines',       path: '/pipelines',   icon: GitBranch,       tKey: 'nav.pipelines',             group: 'data' },
+  { id: 'workshop',        path: '/workshop',    icon: Wrench,          tKey: 'nav.workshop',              group: 'build' },
+  { id: 'reports',         path: '/reports',     icon: FileText,        tKey: 'nav.reports',               group: 'build' },
+  { id: 'control-center',  path: '/ops',         icon: LayoutDashboard, tKey: 'nav.controlCenter',         group: 'build' },
 ];
 
-const GROUP_LABELS: Record<string, string> = { ops: 'Operations', data: 'Data & Ontology', build: 'Build & Analysis' };
+const groups = ['intel', 'ops', 'data', 'build'];
 
 export default function Sidebar() {
   const [collapsed, setCollapsed] = useState(false);
   const navigate = useNavigate();
   const location = useLocation();
-
-  const groups = ['ops', 'data', 'build'];
+  const t = useT();
 
   return (
     <aside
@@ -36,12 +40,12 @@ export default function Sidebar() {
       {/* Logo */}
       <div className="flex items-center gap-3 px-3 py-4 border-b border-foundry-border">
         <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-cyan-500/30 to-blue-600/30 border border-cyan-500/40 flex items-center justify-center shrink-0">
-          <span className="text-sm font-bold text-foundry-accent">TF</span>
+          <span className="text-sm font-bold text-foundry-accent">T</span>
         </div>
         {!collapsed && (
           <div>
-            <div className="text-xs font-bold text-foundry-text leading-tight">Terra Foundry</div>
-            <div className="text-[10px] text-foundry-muted leading-tight">Borion Tech v2</div>
+            <div className="text-xs font-bold text-foundry-text leading-tight">{t('platform.name')}</div>
+            <div className="text-[10px] text-foundry-muted leading-tight">{t('platform.subtitle')}</div>
           </div>
         )}
       </div>
@@ -54,11 +58,12 @@ export default function Sidebar() {
             <div key={group} className="mb-2">
               {!collapsed && (
                 <div className="px-3 py-1 text-[10px] font-semibold uppercase tracking-widest text-foundry-muted/60">
-                  {GROUP_LABELS[group]}
+                  {t(`group.${group}`)}
                 </div>
               )}
-              {items.map(({ id, path, icon: Icon, label }) => {
+              {items.map(({ id, path, icon: Icon, tKey }) => {
                 const active = location.pathname === path || (path !== '/' && location.pathname.startsWith(path));
+                const label = t(tKey);
                 return (
                   <button
                     key={id}

@@ -1,6 +1,7 @@
 import React, { useEffect } from 'react';
 import { createBrowserRouter, RouterProvider, Navigate } from 'react-router-dom';
 import Layout from './components/layout/Layout';
+import DecisionCenter from './views/DecisionCenter';
 import ControlCenter from './views/ControlCenter';
 import OntologyManager from './views/OntologyManager';
 import ObjectExplorer from './views/ObjectExplorer';
@@ -11,6 +12,9 @@ import PipelinesView from './views/PipelinesView';
 import Workshop from './views/Workshop';
 import AIAssistant from './views/AIAssistant';
 import ReportsView from './views/ReportsView';
+import CommanderView from './views/CommanderView';
+import SimulationLab from './views/SimulationLab';
+import IntelligenceWorkbench from './views/IntelligenceWorkbench';
 import { dashboardApi, missionsApi } from './api/foundryApi';
 import { useAppStore } from './store/appStore';
 
@@ -36,7 +40,11 @@ const router = createBrowserRouter([
       </>
     ),
     children: [
-      { index: true,           element: <ControlCenter /> },
+      { index: true,           element: <DecisionCenter /> },
+      { path: 'commander',     element: <CommanderView /> },
+      { path: 'simulate',      element: <SimulationLab /> },
+      { path: 'intelligence',  element: <IntelligenceWorkbench /> },
+      { path: 'ops',           element: <ControlCenter /> },
       { path: 'ontology',      element: <OntologyManager /> },
       { path: 'objects',       element: <ObjectExplorer /> },
       { path: 'objects/:id',   element: <ObjectExplorer /> },

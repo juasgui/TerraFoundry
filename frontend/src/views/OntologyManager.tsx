@@ -3,8 +3,12 @@ import { Plus, ChevronRight, GitBranch, Tag, Link2 } from 'lucide-react';
 import { ontologyApi } from '../api/foundryApi';
 import type { ObjectType, LinkType, OntologyGraph } from '../types';
 import { Button, Card, Spinner, Badge, Input } from '../components/ui';
+import { useT } from '../i18n/useT';
+import { useAppStore } from '../store/appStore';
 
 export default function OntologyManager() {
+  const t = useT();
+  const language = useAppStore((s) => s.language);
   const [types, setTypes] = useState<ObjectType[]>([]);
   const [linkTypes, setLinkTypes] = useState<LinkType[]>([]);
   const [graph, setGraph] = useState<OntologyGraph | null>(null);
@@ -18,7 +22,7 @@ export default function OntologyManager() {
     Promise.all([ontologyApi.types(), ontologyApi.linkTypes(), ontologyApi.graph()])
       .then(([t, lt, g]) => { setTypes(t); setLinkTypes(lt); setGraph(g); })
       .finally(() => setLoading(false));
-  }, []);
+  }, [language]);
 
   const selectType = async (t: ObjectType) => {
     const detail = await ontologyApi.type(t.id);
@@ -40,7 +44,7 @@ export default function OntologyManager() {
   };
 
   if (loading) {
-    return <div className="flex items-center justify-center h-full gap-3"><Spinner size={20} /><span className="text-foundry-muted text-sm">Loading ontology…</span></div>;
+    return <div className="flex items-center justify-center h-full gap-3"><Spinner size={20} /><span className="text-foundry-muted text-sm">{t('common.loading')}</span></div>;
   }
 
   return (
@@ -48,20 +52,20 @@ export default function OntologyManager() {
       {/* Left: type list */}
       <div className="w-64 shrink-0 border-r border-foundry-border flex flex-col bg-foundry-surface">
         <div className="flex items-center justify-between px-4 py-3 border-b border-foundry-border">
-          <span className="text-xs font-semibold uppercase tracking-widest text-foundry-muted">Object Types</span>
-          <Button variant="ghost" size="xs" icon={<Plus size={12} />} onClick={() => setShowAddType(!showAddType)}>New</Button>
+          <span className="text-xs font-semibold uppercase tracking-widest text-foundry-muted">{t('ont.objectTypes')}</span>
+          <Button variant="ghost" size="xs" icon={<Plus size={12} />} onClick={() => setShowAddType(!showAddType)}>{t('ont.new')}</Button>
         </div>
         {showAddType && (
           <div className="p-3 border-b border-foundry-border bg-foundry-card space-y-2">
-            <Input placeholder="Type name (e.g. flood_event)" value={newType.name} onChange={e => setNewType(p => ({ ...p, name: e.target.value }))} />
-            <Input placeholder="Label (e.g. Flood Event)" value={newType.label} onChange={e => setNewType(p => ({ ...p, label: e.target.value }))} />
+            <Input placeholder={t('ont.placeholderName')} value={newType.name} onChange={e => setNewType(p => ({ ...p, name: e.target.value }))} />
+            <Input placeholder={t('ont.placeholderLabel')} value={newType.label} onChange={e => setNewType(p => ({ ...p, label: e.target.value }))} />
             <div className="flex gap-2">
-              <Input placeholder="Icon emoji" value={newType.icon} onChange={e => setNewType(p => ({ ...p, icon: e.target.value }))} className="w-20" />
+              <Input placeholder={t('ont.placeholderIcon')} value={newType.icon} onChange={e => setNewType(p => ({ ...p, icon: e.target.value }))} className="w-20" />
               <input type="color" value={newType.color} onChange={e => setNewType(p => ({ ...p, color: e.target.value }))} className="w-10 h-8 bg-transparent border border-foundry-border rounded cursor-pointer" />
             </div>
             <div className="flex gap-2">
-              <Button variant="primary" size="xs" loading={creating} onClick={createType}>Create</Button>
-              <Button variant="ghost" size="xs" onClick={() => setShowAddType(false)}>Cancel</Button>
+              <Button variant="primary" size="xs" loading={creating} onClick={createType}>{t('ont.create')}</Button>
+              <Button variant="ghost" size="xs" onClick={() => setShowAddType(false)}>{t('common.cancel')}</Button>
             </div>
           </div>
         )}
@@ -90,11 +94,11 @@ export default function OntologyManager() {
         {/* Stats footer */}
         <div className="px-4 py-3 border-t border-foundry-border grid grid-cols-2 gap-2">
           <div>
-            <div className="text-[10px] text-foundry-muted">Object Types</div>
+            <div className="text-[10px] text-foundry-muted">{t('ont.objectTypes')}</div>
             <div className="text-sm font-bold font-mono-code text-foundry-accent">{types.length}</div>
           </div>
           <div>
-            <div className="text-[10px] text-foundry-muted">Link Types</div>
+            <div className="text-[10px] text-foundry-muted">{t('ont.linkTypes')}</div>
             <div className="text-sm font-bold font-mono-code text-foundry-accent">{linkTypes.length}</div>
           </div>
         </div>
@@ -106,7 +110,7 @@ export default function OntologyManager() {
           <div className="flex-1 flex items-center justify-center">
             <div className="text-center">
               <div className="text-4xl mb-4 opacity-30">🕸</div>
-              <p className="text-foundry-muted text-sm">Select an object type to inspect its schema</p>
+              <p className="text-foundry-muted text-sm">{t('ont.selectTypeHint')}</p>
             </div>
           </div>
         ) : (
@@ -125,14 +129,14 @@ export default function OntologyManager() {
                 <div className="text-2xl font-bold font-mono-code" style={{ color: selected.color }}>
                   {selected.object_count ?? 0}
                 </div>
-                <div className="text-[10px] text-foundry-muted">objects</div>
+                <div className="text-[10px] text-foundry-muted">{t('common.objects')}</div>
               </div>
             </div>
 
             {/* Properties */}
             <Card title="Properties" actions={<span className="text-[10px] text-foundry-muted">{selected.property_definitions?.length ?? 0} defined</span>}>
               {!selected.property_definitions?.length ? (
-                <div className="p-4 text-xs text-foundry-muted">No property definitions.</div>
+                <div className="p-4 text-xs text-foundry-muted">{t('ont.noProperties')}</div>
               ) : (
                 <div className="divide-y divide-foundry-border">
                   {selected.property_definitions.map((pd) => (
@@ -144,7 +148,7 @@ export default function OntologyManager() {
                       </div>
                       <Badge label={pd.type} className="mr-2" />
                       {pd.unit && <span className="text-[10px] text-foundry-muted">{pd.unit}</span>}
-                      {pd.required ? <span className="text-[10px] text-red-400 ml-auto">required</span> : <span className="ml-auto text-[10px] text-foundry-muted">optional</span>}
+                      {pd.required ? <span className="text-[10px] text-red-400 ml-auto">{t('ont.required')}</span> : <span className="ml-auto text-[10px] text-foundry-muted">{t('ont.optional')}</span>}
                     </div>
                   ))}
                 </div>
@@ -177,7 +181,7 @@ export default function OntologyManager() {
       {/* Right: graph visualization */}
       <div className="w-72 shrink-0 border-l border-foundry-border bg-foundry-surface flex flex-col">
         <div className="px-4 py-3 border-b border-foundry-border">
-          <span className="text-xs font-semibold uppercase tracking-widest text-foundry-muted">Property Graph</span>
+          <span className="text-xs font-semibold uppercase tracking-widest text-foundry-muted">{t('ont.propertyGraph')}</span>
         </div>
         {graph && <OntologyGraphSVG graph={graph} selectedId={selected?.id} onSelect={(id) => {
           const t = types.find(t => t.id === id);
@@ -187,7 +191,7 @@ export default function OntologyManager() {
         {/* Link types list */}
         <div className="border-t border-foundry-border">
           <div className="px-4 py-2.5">
-            <span className="text-[10px] font-semibold uppercase tracking-widest text-foundry-muted">All Link Types ({linkTypes.length})</span>
+            <span className="text-[10px] font-semibold uppercase tracking-widest text-foundry-muted">{t('ont.allLinkTypes')} ({linkTypes.length})</span>
           </div>
           <div className="overflow-y-auto max-h-40">
             {linkTypes.map((lt) => (

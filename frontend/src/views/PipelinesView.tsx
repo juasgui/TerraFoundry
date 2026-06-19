@@ -3,9 +3,11 @@ import { Play, Upload, Clock, CheckCircle, AlertCircle, Database, RefreshCw } fr
 import { pipelinesApi } from '../api/foundryApi';
 import type { PipelineSource, PipelineRun } from '../types';
 import { Badge, Button, Card, Spinner } from '../components/ui';
+import { useT } from '../i18n/useT';
 import { useAppStore } from '../store/appStore';
 
 export default function PipelinesView() {
+  const t = useT();
   const [sources, setSources] = useState<PipelineSource[]>([]);
   const [runs, setRuns] = useState<PipelineRun[]>([]);
   const [loading, setLoading] = useState(true);
@@ -21,7 +23,8 @@ export default function PipelinesView() {
     setRuns(r);
   };
 
-  useEffect(() => { load().finally(() => setLoading(false)); }, []);
+  const { language } = useAppStore();
+  useEffect(() => { load().finally(() => setLoading(false)); }, [language]);
 
   const trigger = async (srcId: string, srcName: string) => {
     setTriggering(t => ({ ...t, [srcId]: true }));
@@ -58,7 +61,7 @@ export default function PipelinesView() {
   };
 
   if (loading) {
-    return <div className="flex items-center justify-center h-full gap-3"><Spinner size={18} /><span className="text-foundry-muted text-sm">Loading pipelines…</span></div>;
+    return <div className="flex items-center justify-center h-full gap-3"><Spinner size={18} /><span className="text-foundry-muted text-sm">{t('common.loading')}</span></div>;
   }
 
   const totalRecords = runs.reduce((s, r) => s + r.records_ingested, 0);
@@ -69,15 +72,15 @@ export default function PipelinesView() {
       {/* Summary stats */}
       <div className="grid grid-cols-3 gap-3">
         <div className="bg-foundry-card border border-foundry-border rounded-lg p-4">
-          <div className="text-xs text-foundry-muted mb-1">Pipeline Runs</div>
+          <div className="text-xs text-foundry-muted mb-1">{t('pip.runsLabel')}</div>
           <div className="text-2xl font-bold font-mono-code text-foundry-accent">{runs.length}</div>
         </div>
         <div className="bg-foundry-card border border-foundry-border rounded-lg p-4">
-          <div className="text-xs text-foundry-muted mb-1">Records Ingested</div>
+          <div className="text-xs text-foundry-muted mb-1">{t('pip.recordsIngested')}</div>
           <div className="text-2xl font-bold font-mono-code text-emerald-400">{totalRecords.toLocaleString()}</div>
         </div>
         <div className="bg-foundry-card border border-foundry-border rounded-lg p-4">
-          <div className="text-xs text-foundry-muted mb-1">Objects Created</div>
+          <div className="text-xs text-foundry-muted mb-1">{t('pip.objectsCreated')}</div>
           <div className="text-2xl font-bold font-mono-code text-foundry-accent">{totalObjects}</div>
         </div>
       </div>
@@ -85,7 +88,7 @@ export default function PipelinesView() {
       {/* Data sources */}
       <div>
         <div className="text-xs font-semibold uppercase tracking-widest text-foundry-muted mb-3 flex items-center gap-2">
-          <Database size={13} /> Data Sources
+          <Database size={13} /> {t('pip.dataSources')}
         </div>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
           {sources.map((src) => (
@@ -114,7 +117,7 @@ export default function PipelinesView() {
                   icon={<Play size={11} />}
                   onClick={() => trigger(src.id, src.name)}
                 >
-                  Run
+                  {t('pip.run')}
                 </Button>
               </div>
 
@@ -127,7 +130,7 @@ export default function PipelinesView() {
                     ) : (
                       <AlertCircle size={10} className="text-red-400" />
                     )}
-                    <span className="text-foundry-muted">Last run:</span>
+                    <span className="text-foundry-muted">{t('pip.lastRunLabel')}</span>
                     <span className="text-foundry-text font-mono-code">{new Date(src.last_run.created_at).toLocaleString()}</span>
                     <span className="ml-auto text-foundry-accent">{src.last_run.records_ingested.toLocaleString()} records</span>
                   </div>
@@ -152,9 +155,9 @@ export default function PipelinesView() {
             onClick={() => fileRef.current?.click()}
           >
             <Upload size={24} className="mx-auto text-foundry-muted mb-3" />
-            <p className="text-sm text-foundry-text-dim">Drop CSV or JSON files here</p>
-            <p className="text-xs text-foundry-muted mt-1">Assessment data, resource lists, field reports</p>
-            {uploading && <div className="mt-3 flex items-center justify-center gap-2"><Spinner size={14} /><span className="text-xs text-foundry-accent">Uploading…</span></div>}
+            <p className="text-sm text-foundry-text-dim">{t('pip.dropFiles')}</p>
+            <p className="text-xs text-foundry-muted mt-1">{t('pip.dropFilesHint')}</p>
+            {uploading && <div className="mt-3 flex items-center justify-center gap-2"><Spinner size={14} /><span className="text-xs text-foundry-accent">{t('pip.uploading')}</span></div>}
           </div>
           <input ref={fileRef} type="file" accept=".csv,.json" className="hidden" onChange={handleUpload} />
         </div>
@@ -164,20 +167,20 @@ export default function PipelinesView() {
       <div>
         <div className="flex items-center justify-between mb-3">
           <span className="text-xs font-semibold uppercase tracking-widest text-foundry-muted flex items-center gap-2">
-            <RefreshCw size={12} /> Recent Runs
+            <RefreshCw size={12} /> {t('pip.recentRuns')}
           </span>
-          <Button variant="ghost" size="xs" onClick={load} icon={<RefreshCw size={11} />}>Refresh</Button>
+          <Button variant="ghost" size="xs" onClick={load} icon={<RefreshCw size={11} />}>{t('common.refresh')}</Button>
         </div>
         <div className="bg-foundry-card border border-foundry-border rounded-lg overflow-hidden">
           <table className="w-full text-xs">
             <thead className="bg-foundry-surface">
               <tr className="border-b border-foundry-border">
-                <th className="text-left px-4 py-2.5 text-foundry-muted font-semibold uppercase tracking-wider">Source</th>
-                <th className="text-left px-4 py-2.5 text-foundry-muted font-semibold uppercase tracking-wider w-20">Type</th>
-                <th className="text-left px-4 py-2.5 text-foundry-muted font-semibold uppercase tracking-wider w-20">Status</th>
-                <th className="text-right px-4 py-2.5 text-foundry-muted font-semibold uppercase tracking-wider w-24">Records</th>
-                <th className="text-right px-4 py-2.5 text-foundry-muted font-semibold uppercase tracking-wider w-24">Objects</th>
-                <th className="text-left px-4 py-2.5 text-foundry-muted font-semibold uppercase tracking-wider w-40">Started</th>
+                <th className="text-left px-4 py-2.5 text-foundry-muted font-semibold uppercase tracking-wider">{t('pip.colSource')}</th>
+                <th className="text-left px-4 py-2.5 text-foundry-muted font-semibold uppercase tracking-wider w-20">{t('common.type')}</th>
+                <th className="text-left px-4 py-2.5 text-foundry-muted font-semibold uppercase tracking-wider w-20">{t('common.status')}</th>
+                <th className="text-right px-4 py-2.5 text-foundry-muted font-semibold uppercase tracking-wider w-24">{t('pip.colRecords')}</th>
+                <th className="text-right px-4 py-2.5 text-foundry-muted font-semibold uppercase tracking-wider w-24">{t('common.objects')}</th>
+                <th className="text-left px-4 py-2.5 text-foundry-muted font-semibold uppercase tracking-wider w-40">{t('pip.colStarted')}</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-foundry-border">
@@ -199,7 +202,7 @@ export default function PipelinesView() {
             </tbody>
           </table>
           {runs.length === 0 && (
-            <div className="p-8 text-center text-foundry-muted text-sm">No pipeline runs yet. Trigger an ingestion above.</div>
+            <div className="p-8 text-center text-foundry-muted text-sm">{t('pip.noRuns')}</div>
           )}
         </div>
       </div>

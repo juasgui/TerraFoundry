@@ -3,8 +3,10 @@ import { FileText, Download, RefreshCw, Shield, AlertTriangle } from 'lucide-rea
 import { reportsApi } from '../api/foundryApi';
 import type { SituationReport } from '../types';
 import { Badge, Button, Spinner } from '../components/ui';
+import { useT } from '../i18n/useT';
 
 export default function ReportsView() {
+  const t = useT();
   const [report, setReport] = useState<SituationReport | null>(null);
   const [loading, setLoading] = useState(false);
   const [type, setType] = useState('sitrep');
@@ -63,21 +65,21 @@ Prepared by: ${report.prepared_by}
       {/* Toolbar */}
       <div className="flex items-center gap-3 px-4 py-3 border-b border-foundry-border bg-foundry-surface shrink-0">
         <FileText size={16} className="text-foundry-muted" />
-        <span className="text-sm font-semibold text-foundry-text">Reporting Module</span>
+        <span className="text-sm font-semibold text-foundry-text">{t('rep.title')}</span>
         <div className="ml-4 flex items-center gap-2">
           <select
             value={type}
             onChange={(e) => setType(e.target.value)}
             className="bg-foundry-card border border-foundry-border rounded px-3 py-1.5 text-xs text-foundry-text focus:outline-none focus:border-foundry-accent/50"
           >
-            <option value="sitrep">Situation Report (SitRep)</option>
-            <option value="hazard">Hazard Assessment</option>
-            <option value="resource">Resource Status</option>
+            <option value="sitrep">{t('rep.sitrep')}</option>
+            <option value="hazard">{t('rep.hazard')}</option>
+            <option value="resource">{t('rep.resource')}</option>
           </select>
-          <Button variant="primary" size="sm" loading={loading} icon={<RefreshCw size={12} />} onClick={generate}>Generate</Button>
+          <Button variant="primary" size="sm" loading={loading} icon={<RefreshCw size={12} />} onClick={generate}>{t('rep.generate')}</Button>
         </div>
         {report && (
-          <Button variant="secondary" size="sm" icon={<Download size={12} />} onClick={exportText} className="ml-auto">Export TXT</Button>
+          <Button variant="secondary" size="sm" icon={<Download size={12} />} onClick={exportText} className="ml-auto">{t('rep.download')}</Button>
         )}
       </div>
 
@@ -86,15 +88,15 @@ Prepared by: ${report.prepared_by}
         {!report && !loading && (
           <div className="flex flex-col items-center justify-center h-full text-center">
             <FileText size={40} className="text-foundry-muted opacity-30 mb-4" />
-            <p className="text-foundry-text text-sm font-semibold mb-1">Generate a Situation Report</p>
-            <p className="text-foundry-muted text-xs max-w-sm">Select a report type above and click Generate. Reports are automatically populated with live data from the Terra ontology database.</p>
+            <p className="text-foundry-text text-sm font-semibold mb-1">{t('rep.generate')}</p>
+            <p className="text-foundry-muted text-xs max-w-sm">{t('rep.generateHint')}</p>
           </div>
         )}
 
         {loading && (
           <div className="flex items-center justify-center h-full gap-3">
             <Spinner size={20} />
-            <span className="text-foundry-muted text-sm">Generating report from live data…</span>
+            <span className="text-foundry-muted text-sm">{t('rep.generating')}</span>
           </div>
         )}
 
@@ -116,7 +118,7 @@ Prepared by: ${report.prepared_by}
 
             {/* Executive summary */}
             <div>
-              <h2 className="text-xs font-semibold uppercase tracking-widest text-foundry-muted mb-3">Executive Summary</h2>
+              <h2 className="text-xs font-semibold uppercase tracking-widest text-foundry-muted mb-3">{t('rep.execSummary')}</h2>
               <div className="bg-foundry-card border border-foundry-border rounded-lg p-4">
                 <p className="text-sm text-foundry-text leading-relaxed">{report.executive_summary}</p>
               </div>
@@ -124,26 +126,26 @@ Prepared by: ${report.prepared_by}
 
             {/* Key figures */}
             <div>
-              <h2 className="text-xs font-semibold uppercase tracking-widest text-foundry-muted mb-3">Key Figures</h2>
+              <h2 className="text-xs font-semibold uppercase tracking-widest text-foundry-muted mb-3">{t('rep.keyFigures')}</h2>
               <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-                <KFCard label="Total Affected" value={report.key_figures.total_affected.toLocaleString()} color="#ff8c00" />
-                <KFCard label="Total Displaced" value={report.key_figures.total_displaced.toLocaleString()} color="#ffcc00" />
-                <KFCard label="Active Hazards" value={String(report.key_figures.active_hazards)} color="#ff3a3a" />
-                <KFCard label="Provinces Affected" value={String(report.key_figures.provinces_affected)} color="#00d4ff" />
+                <KFCard label={t('rep.totalAffected')} value={report.key_figures.total_affected.toLocaleString()} color="#ff8c00" />
+                <KFCard label={t('rep.totalDisplaced')} value={report.key_figures.total_displaced.toLocaleString()} color="#ffcc00" />
+                <KFCard label={t('kpi.activeHazards')} value={String(report.key_figures.active_hazards)} color="#ff3a3a" />
+                <KFCard label={t('rep.provincesAffected')} value={String(report.key_figures.provinces_affected)} color="#00d4ff" />
               </div>
             </div>
 
             {/* Province matrix */}
             {report.province_matrix.length > 0 && (
               <div>
-                <h2 className="text-xs font-semibold uppercase tracking-widest text-foundry-muted mb-3">Province Impact Matrix</h2>
+                <h2 className="text-xs font-semibold uppercase tracking-widest text-foundry-muted mb-3">{t('rep.provinceMatrix')}</h2>
                 <div className="bg-foundry-card border border-foundry-border rounded-lg overflow-hidden">
                   <table className="w-full text-xs">
                     <thead className="bg-foundry-surface">
                       <tr className="border-b border-foundry-border">
-                        <th className="text-left px-4 py-2.5 text-foundry-muted font-semibold uppercase tracking-wider">Province</th>
-                        <th className="text-right px-4 py-2.5 text-foundry-muted font-semibold uppercase tracking-wider">Affected</th>
-                        <th className="text-left px-4 py-2.5 text-foundry-muted font-semibold uppercase tracking-wider w-24">Severity</th>
+                        <th className="text-left px-4 py-2.5 text-foundry-muted font-semibold uppercase tracking-wider">{t('rep.province')}</th>
+                        <th className="text-right px-4 py-2.5 text-foundry-muted font-semibold uppercase tracking-wider">{t('rep.affectedCol')}</th>
+                        <th className="text-left px-4 py-2.5 text-foundry-muted font-semibold uppercase tracking-wider w-24">{t('rep.severityCol')}</th>
                       </tr>
                     </thead>
                     <tbody className="divide-y divide-foundry-border">
@@ -165,7 +167,7 @@ Prepared by: ${report.prepared_by}
             {/* Critical alerts */}
             {report.critical_alerts.length > 0 && (
               <div>
-                <h2 className="text-xs font-semibold uppercase tracking-widest text-foundry-muted mb-3">Critical Alerts ({report.critical_alerts.length})</h2>
+                <h2 className="text-xs font-semibold uppercase tracking-widest text-foundry-muted mb-3">{t('rep.criticalAlerts')} ({report.critical_alerts.length})</h2>
                 <div className="space-y-2">
                   {report.critical_alerts.map((a) => (
                     <div key={a.id} className="flex items-start gap-3 p-3 bg-red-950/30 border border-red-800/40 rounded-lg">
@@ -187,7 +189,7 @@ Prepared by: ${report.prepared_by}
             {/* Active missions */}
             {report.active_missions.length > 0 && (
               <div>
-                <h2 className="text-xs font-semibold uppercase tracking-widest text-foundry-muted mb-3">Active Missions ({report.active_missions.length})</h2>
+                <h2 className="text-xs font-semibold uppercase tracking-widest text-foundry-muted mb-3">{t('rep.activeMissions')} ({report.active_missions.length})</h2>
                 <div className="grid grid-cols-2 gap-3">
                   {report.active_missions.map((m, i) => (
                     <div key={i} className="bg-foundry-card border border-foundry-border rounded-lg p-3">
@@ -206,7 +208,7 @@ Prepared by: ${report.prepared_by}
 
             {/* Data sources */}
             <div className="pt-4 border-t border-foundry-border">
-              <span className="text-xs text-foundry-muted">Data sources: </span>
+              <span className="text-xs text-foundry-muted">{t('rep.dataSources')}: </span>
               {report.data_sources.map((s) => (
                 <span key={s} className="text-xs text-foundry-accent mr-3">{s}</span>
               ))}

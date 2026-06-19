@@ -5,8 +5,10 @@ import type { MapObject, FloodZone } from '../types';
 import FoundryMap from '../components/map/FoundryMap';
 import { useAppStore } from '../store/appStore';
 import { Button } from '../components/ui';
+import { useT } from '../i18n/useT';
 
 export default function MapsView() {
+  const t = useT();
   const [objects, setObjects] = useState<MapObject[]>([]);
   const [floodZones, setFloodZones] = useState<FloodZone[]>([]);
   const [supplyRoutes, setSupplyRoutes] = useState<{ id: string; name: string; status: string; waypoints: [number, number][]; type: string }[]>([]);
@@ -31,13 +33,13 @@ export default function MapsView() {
     }).finally(() => setLoading(false));
   }, []);
 
-  const LAYERS: { key: keyof typeof mapLayers; label: string; color: string; count?: number }[] = [
-    { key: 'hazards', label: 'Hazards & Weather', color: '#00d4ff', count: layerCounts.weather },
-    { key: 'resources', label: 'Resources', color: '#00ff9d', count: layerCounts.resource },
-    { key: 'infrastructure', label: 'Infrastructure', color: '#a78bfa', count: layerCounts.infra },
-    { key: 'supplyRoutes', label: 'Supply Routes', color: '#ffcc00', count: supplyRoutes.length },
-    { key: 'health', label: 'Health Risks', color: '#ff3a3a', count: layerCounts.health },
-    { key: 'heatmap', label: 'Population Heatmap', color: '#ff8c00' },
+  const LAYERS: { key: keyof typeof mapLayers; labelKey: string; color: string; count?: number }[] = [
+    { key: 'hazards', labelKey: 'map.hazardsWeather', color: '#00d4ff', count: layerCounts.weather },
+    { key: 'resources', labelKey: 'map.resources', color: '#00ff9d', count: layerCounts.resource },
+    { key: 'infrastructure', labelKey: 'map.infrastructure', color: '#a78bfa', count: layerCounts.infra },
+    { key: 'supplyRoutes', labelKey: 'map.supplyRoutes', color: '#ffcc00', count: supplyRoutes.length },
+    { key: 'health', labelKey: 'map.healthRisks', color: '#ff3a3a', count: layerCounts.health },
+    { key: 'heatmap', labelKey: 'map.populationHeatmap', color: '#ff8c00' },
   ];
 
   const routeStatusColors: Record<string, string> = { ACTIVE: 'text-green-400', BLOCKED: 'text-red-400', PARTIAL: 'text-yellow-400' };
@@ -48,7 +50,7 @@ export default function MapsView() {
       <div className="flex-1 relative">
         {loading && (
           <div className="absolute inset-0 flex items-center justify-center bg-foundry-bg/80 z-10">
-            <div className="text-foundry-accent text-sm">Loading map data…</div>
+            <div className="text-foundry-accent text-sm">{t('common.loading')}</div>
           </div>
         )}
         <FoundryMap
@@ -66,9 +68,9 @@ export default function MapsView() {
         <div className="px-3 py-2.5 border-b border-foundry-border">
           <div className="flex items-center gap-2 mb-2">
             <Layers size={12} className="text-foundry-muted" />
-            <span className="text-[10px] font-semibold uppercase tracking-widest text-foundry-muted">Layers</span>
+            <span className="text-[10px] font-semibold uppercase tracking-widest text-foundry-muted">{t('map.layers')}</span>
           </div>
-          {LAYERS.map(({ key, label, color, count }) => (
+          {LAYERS.map(({ key, labelKey, color, count }) => (
             <button
               key={key}
               onClick={() => toggleMapLayer(key)}
@@ -76,7 +78,7 @@ export default function MapsView() {
             >
               <div className={`w-3 h-3 rounded border transition-all ${mapLayers[key] ? 'border-transparent' : 'border-foundry-border bg-transparent'}`}
                 style={{ background: mapLayers[key] ? color : 'transparent', borderColor: mapLayers[key] ? 'transparent' : '#1e2d3d' }} />
-              <span className={mapLayers[key] ? 'text-foundry-text' : 'text-foundry-muted'}>{label}</span>
+              <span className={mapLayers[key] ? 'text-foundry-text' : 'text-foundry-muted'}>{t(labelKey)}</span>
               {count !== undefined && <span className="ml-auto text-[10px] text-foundry-muted">{count}</span>}
             </button>
           ))}
@@ -86,7 +88,7 @@ export default function MapsView() {
         <div className="px-3 py-2.5 border-b border-foundry-border">
           <div className="flex items-center gap-2 mb-2">
             <MapIcon size={12} className="text-foundry-muted" />
-            <span className="text-[10px] font-semibold uppercase tracking-widest text-foundry-muted">Supply Routes</span>
+            <span className="text-[10px] font-semibold uppercase tracking-widest text-foundry-muted">{t('map.supplyRoutes')}</span>
           </div>
           {supplyRoutes.map((r) => (
             <div key={r.id} className="flex items-center gap-2 py-1 text-xs">
@@ -98,7 +100,7 @@ export default function MapsView() {
 
         {/* Flood zones */}
         <div className="px-3 py-2.5 flex-1 overflow-y-auto">
-          <div className="text-[10px] font-semibold uppercase tracking-widest text-foundry-muted mb-2">Flood Zones ({floodZones.length})</div>
+          <div className="text-[10px] font-semibold uppercase tracking-widest text-foundry-muted mb-2">{t('map.floodZones')} ({floodZones.length})</div>
           {floodZones.map((z) => (
             <div key={z.id} className="py-1 text-xs">
               <div className={`text-[10px] font-bold ${z.severity === 'CRITICAL' ? 'text-red-400' : z.severity === 'HIGH' ? 'text-orange-400' : 'text-yellow-400'}`}>{z.severity}</div>

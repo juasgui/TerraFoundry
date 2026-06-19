@@ -8,9 +8,10 @@ const { v4: uuidv4 } = require('uuid');
 router.get('/', (req, res) => {
   const db = getDB();
   const { status } = req.query;
+  const lang = req.headers['x-lang'] || 'en';
   let where = status ? `WHERE m.status = ?` : '';
 
-  const missions = db.prepare(`
+  let missions = db.prepare(`
     SELECT m.*,
       o_we.name as weather_event_name,
       o_org.name as lead_org_name,
@@ -23,6 +24,14 @@ router.get('/', (req, res) => {
     ${where}
     ORDER BY CASE m.status WHEN 'active' THEN 0 WHEN 'planning' THEN 1 ELSE 2 END, m.created_at DESC
   `).all(...(status ? [status] : []));
+
+  if (lang === 'pt') {
+    missions = missions.map(m => ({
+      ...m,
+      name: m.name_pt || m.name,
+      description: m.description_pt || m.description,
+    }));
+  }
 
   res.json(missions);
 });

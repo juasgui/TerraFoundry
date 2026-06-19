@@ -5,14 +5,18 @@ import { useAppStore } from '../store/appStore';
 import { dashboardApi } from '../api/foundryApi';
 import type { OntologyEvent, ChartData } from '../types';
 import { Badge, KpiCard, Spinner, TimelineItem } from '../components/ui';
+import { useT } from '../i18n/useT';
 
 export default function ControlCenter() {
+  const t = useT();
   const { metrics, setMetrics, alerts, setAlerts } = useAppStore();
+  const language = useAppStore((s) => s.language);
   const [timeline, setTimeline] = useState<OntologyEvent[]>([]);
   const [charts, setCharts] = useState<ChartData | null>(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
+    setLoading(true);
     Promise.all([
       dashboardApi.metrics(),
       dashboardApi.alerts(),
@@ -31,13 +35,13 @@ export default function ControlCenter() {
       setAlerts(a);
     }, 30000);
     return () => clearInterval(id);
-  }, []);
+  }, [language]);
 
   if (loading) {
     return (
       <div className="flex items-center justify-center h-full gap-3">
         <Spinner size={20} />
-        <span className="text-foundry-muted text-sm">Loading Common Operating Picture…</span>
+        <span className="text-foundry-muted text-sm">{t('common.loading')}</span>
       </div>
     );
   }
@@ -50,31 +54,32 @@ export default function ControlCenter() {
       <div className="flex items-center gap-3 px-4 py-2 bg-red-950/40 border border-red-800/40 rounded-lg">
         <Radio size={14} className="text-red-400 blink shrink-0" />
         <span className="text-xs text-red-300">
-          <span className="font-bold">ACTIVE EMERGENCY:</span> Mozambique multi-hazard compound crisis — {metrics?.activeHazards ?? 0} active events · {metrics?.provincesAffected ?? 0} provinces affected
+          <span className="font-bold">{t('ops.activeEmergency')}:</span>{' '}
+          {t('ops.multiHazard', { events: String(metrics?.activeHazards ?? 0), provinces: String(metrics?.provincesAffected ?? 0) })}
         </span>
         <span className="ml-auto text-[10px] text-red-500 font-mono-code">{new Date(metrics?.lastUpdated ?? '').toLocaleTimeString()}</span>
       </div>
 
       {/* KPI row */}
       <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-3">
-        <KpiCard label="Affected" value={`${((metrics?.totalAffected ?? 0) / 1e6).toFixed(2)}M`}
-          sub="people" color="#ff8c00" icon={<Users size={14} />} />
-        <KpiCard label="Displaced" value={`${((metrics?.totalDisplaced ?? 0) / 1000).toFixed(0)}K`}
-          sub="people" color="#ffcc00" icon={<TrendingUp size={14} />} />
-        <KpiCard label="Active Hazards" value={metrics?.activeHazards ?? 0}
-          sub="events" color="#ff3a3a" icon={<Wind size={14} />} />
-        <KpiCard label="Deployed Assets" value={metrics?.deployedResources ?? 0}
-          sub="resources" color="#00ff9d" icon={<Truck size={14} />} />
-        <KpiCard label="Critical Alerts" value={unack.filter(a => a.severity === 'CRITICAL').length}
-          sub="unacknowledged" color="#ff3a3a" icon={<AlertTriangle size={14} />} />
-        <KpiCard label="Cholera Cases" value={`${((metrics?.choleraCases ?? 0) / 1000).toFixed(1)}K`}
-          sub="cumulative" color="#a78bfa" icon={<Heart size={14} />} />
+        <KpiCard label={t('kpi.affected')} value={`${((metrics?.totalAffected ?? 0) / 1e6).toFixed(2)}M`}
+          sub={t('kpi.people')} color="#ff8c00" icon={<Users size={14} />} />
+        <KpiCard label={t('kpi.displaced')} value={`${((metrics?.totalDisplaced ?? 0) / 1000).toFixed(0)}K`}
+          sub={t('kpi.people')} color="#ffcc00" icon={<TrendingUp size={14} />} />
+        <KpiCard label={t('kpi.activeHazards')} value={metrics?.activeHazards ?? 0}
+          sub={t('kpi.events')} color="#ff3a3a" icon={<Wind size={14} />} />
+        <KpiCard label={t('kpi.deployedAssets')} value={metrics?.deployedResources ?? 0}
+          sub={t('kpi.resources')} color="#00ff9d" icon={<Truck size={14} />} />
+        <KpiCard label={t('kpi.criticalAlerts')} value={unack.filter(a => a.severity === 'CRITICAL').length}
+          sub={t('kpi.unacknowledged')} color="#ff3a3a" icon={<AlertTriangle size={14} />} />
+        <KpiCard label={t('kpi.choleraCases')} value={`${((metrics?.choleraCases ?? 0) / 1000).toFixed(1)}K`}
+          sub={t('kpi.cumulative')} color="#a78bfa" icon={<Heart size={14} />} />
       </div>
 
       {/* Risk index bar */}
       <div className="flex items-center gap-3 px-4 py-2 bg-foundry-card border border-foundry-border rounded-lg">
         <Activity size={13} className="text-foundry-muted shrink-0" />
-        <span className="text-xs text-foundry-muted w-24 shrink-0">Risk Index</span>
+        <span className="text-xs text-foundry-muted w-24 shrink-0">{t('common.risk')}</span>
         <div className="flex-1 h-2 bg-foundry-surface rounded-full overflow-hidden">
           <div
             className="h-full rounded-full transition-all"
@@ -92,7 +97,7 @@ export default function ControlCenter() {
         {/* Province chart */}
         {charts && (
           <div className="bg-foundry-card border border-foundry-border rounded-lg p-4 col-span-1">
-            <div className="text-xs font-semibold uppercase tracking-widest text-foundry-muted mb-3">Affected by Province</div>
+            <div className="text-xs font-semibold uppercase tracking-widest text-foundry-muted mb-3">{t('chart.affectedByProvince')}</div>
             <ResponsiveContainer width="100%" height={160}>
               <BarChart data={charts.byProvince.slice(0, 7)} barSize={14}>
                 <XAxis dataKey="name" tick={{ fill: '#64748b', fontSize: 9 }} interval={0} angle={-25} textAnchor="end" height={36} />
@@ -100,7 +105,7 @@ export default function ControlCenter() {
                 <Tooltip
                   contentStyle={{ background: '#1a2030', border: '1px solid #1e2d3d', borderRadius: 6, fontSize: 11 }}
                   labelStyle={{ color: '#e2e8f0' }}
-                  formatter={(v: number) => [`${(v / 1000).toFixed(0)}K`, 'Affected']}
+                  formatter={(v: number) => [`${(v / 1000).toFixed(0)}K`, t('chart.affectedLabel')]}
                 />
                 <Bar dataKey="affected" radius={[2, 2, 0, 0]}>
                   {charts.byProvince.slice(0, 7).map((entry, i) => (
@@ -115,7 +120,7 @@ export default function ControlCenter() {
         {/* Trend line */}
         {charts && (
           <div className="bg-foundry-card border border-foundry-border rounded-lg p-4 col-span-1">
-            <div className="text-xs font-semibold uppercase tracking-widest text-foundry-muted mb-3">Affected Trend</div>
+            <div className="text-xs font-semibold uppercase tracking-widest text-foundry-muted mb-3">{t('chart.affectedTrend')}</div>
             <ResponsiveContainer width="100%" height={160}>
               <LineChart data={charts.affectedTrend}>
                 <XAxis dataKey="date" tick={{ fill: '#64748b', fontSize: 9 }} />
@@ -134,7 +139,7 @@ export default function ControlCenter() {
         {/* Active alerts */}
         <div className="bg-foundry-card border border-foundry-border rounded-lg col-span-1 flex flex-col">
           <div className="flex items-center justify-between px-4 py-3 border-b border-foundry-border">
-            <span className="text-xs font-semibold uppercase tracking-widest text-foundry-muted">Critical Alerts</span>
+            <span className="text-xs font-semibold uppercase tracking-widest text-foundry-muted">{t('cmd.criticalAlerts')}</span>
             <span className="text-[10px] font-mono-code text-red-400">{unack.length} unack'd</span>
           </div>
           <div className="flex-1 overflow-y-auto divide-y divide-foundry-border">
@@ -169,7 +174,7 @@ export default function ControlCenter() {
         {/* Timeline feed */}
         <div className="bg-foundry-card border border-foundry-border rounded-lg flex flex-col max-h-64">
           <div className="px-4 py-3 border-b border-foundry-border">
-            <span className="text-xs font-semibold uppercase tracking-widest text-foundry-muted">Live Event Feed</span>
+            <span className="text-xs font-semibold uppercase tracking-widest text-foundry-muted">{t('ops.recentEvents')}</span>
           </div>
           <div className="flex-1 overflow-y-auto px-4 py-2">
             {timeline.slice(0, 10).map((ev) => (
@@ -189,7 +194,7 @@ export default function ControlCenter() {
       {/* Health cases */}
       {charts && charts.healthCases.length > 0 && (
         <div className="bg-foundry-card border border-foundry-border rounded-lg p-4">
-          <div className="text-xs font-semibold uppercase tracking-widest text-foundry-muted mb-3">Health Surveillance</div>
+          <div className="text-xs font-semibold uppercase tracking-widest text-foundry-muted mb-3">{t('map.health')}</div>
           <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
             {charts.healthCases.map((h) => (
               <div key={h.disease} className="bg-foundry-surface rounded p-3 border border-foundry-border">

@@ -4,23 +4,70 @@ const router = express.Router();
 const { getDB } = require('../db/database');
 const { v4: uuidv4 } = require('uuid');
 
+const TYPE_LABELS_PT = {
+  'Weather Event': 'Evento Meteorológico',
+  'Affected Area': 'Área Afectada',
+  'Resource / Asset': 'Recurso / Activo',
+  'Organization': 'Organização',
+  'Health Risk': 'Risco de Saúde',
+  'Supply Chain Item': 'Item de Cadeia de Abastecimento',
+  'Mission': 'Missão',
+  'Health Facility': 'Unidade de Saúde',
+  'River / Waterway': 'Rio / Via Navegável',
+  'Infrastructure': 'Infraestrutura',
+  'Power Station': 'Central Elétrica',
+  'Telecom / Network': 'Telecom / Rede',
+  'Water Facility': 'Instalação Hídrica',
+  'Crop / Agri Zone': 'Zona Agrícola',
+  'Person at Risk': 'Pessoa em Risco',
+  'Shelter / IDP Site': 'Abrigo / Campo de Deslocados',
+};
+
+const LINK_LABELS_PT = {
+  'Impacts On': 'Impacta Em',
+  'Threatens': 'Ameaça',
+  'Has Health Risk': 'Tem Risco de Saúde',
+  'Located In': 'Localizado Em',
+  'Deploys': 'Implanta',
+  'Responds To': 'Responde A',
+  'Participates In': 'Participa Em',
+  'Supplies': 'Abastece',
+  'Monitors': 'Monitoriza',
+  'Assigned To': 'Atribuído A',
+  'Operates In': 'Opera Em',
+  'Exacerbates': 'Agrava',
+};
+
+function translateType(label, isPT) {
+  return isPT ? (TYPE_LABELS_PT[label] || label) : label;
+}
+
+function translateLink(label, isPT) {
+  return isPT ? (LINK_LABELS_PT[label] || label) : label;
+}
+
 // GET all object types with property counts
 router.get('/types', (req, res) => {
   const db = getDB();
+  const isPT = (req.headers['x-lang'] || 'en') === 'pt';
   const types = db.prepare(`
     SELECT ot.*,
       (SELECT COUNT(*) FROM objects o WHERE o.type_id = ot.id) as object_count,
       (SELECT COUNT(*) FROM property_definitions pd WHERE pd.object_type_id = ot.id) as property_count
     FROM object_types ot ORDER BY ot.category, ot.label
   `).all();
+  if (isPT) types.forEach(t => { t.label = translateType(t.label, true); });
   res.json(types);
 });
 
 // GET single object type with full property definitions
 router.get('/types/:id', (req, res) => {
   const db = getDB();
+  const isPT = (req.headers['x-lang'] || 'en') === 'pt';
   const type = db.prepare('SELECT * FROM object_types WHERE id = ?').get(req.params.id);
   if (!type) return res.status(404).json({ error: 'Object type not found' });
+
+  if (isPT) type.label = translateType(type.label, true);
 
   type.properties = db.prepare('SELECT * FROM property_definitions WHERE object_type_id = ? ORDER BY name').all(req.params.id);
   type.object_count = db.prepare('SELECT COUNT(*) as c FROM objects WHERE type_id = ?').get(req.params.id).c;
@@ -28,6 +75,10 @@ router.get('/types/:id', (req, res) => {
   // Link types involving this object type
   type.link_types_from = db.prepare('SELECT * FROM link_types WHERE from_type_id = ?').all(req.params.id);
   type.link_types_to   = db.prepare('SELECT * FROM link_types WHERE to_type_id = ?').all(req.params.id);
+  if (isPT) {
+    type.link_types_from.forEach(l => { l.label = translateLink(l.label, true); });
+    type.link_types_to.forEach(l => { l.label = translateLink(l.label, true); });
+  }
 
   res.json(type);
 });
@@ -74,6 +125,7 @@ router.delete('/types/:typeId/properties/:propId', (req, res) => {
 // GET all link types
 router.get('/link-types', (req, res) => {
   const db = getDB();
+  const isPT = (req.headers['x-lang'] || 'en') === 'pt';
   const linkTypes = db.prepare(`
     SELECT lt.*,
       ft.label as from_type_label, ft.icon as from_type_icon, ft.color as from_type_color,
@@ -84,6 +136,13 @@ router.get('/link-types', (req, res) => {
     LEFT JOIN object_types tt ON lt.to_type_id = tt.id
     ORDER BY lt.label
   `).all();
+  if (isPT) {
+    linkTypes.forEach(lt => {
+      lt.label = translateLink(lt.label, true);
+      if (lt.from_type_label) lt.from_type_label = translateType(lt.from_type_label, true);
+      if (lt.to_type_label) lt.to_type_label = translateType(lt.to_type_label, true);
+    });
+  }
   res.json(linkTypes);
 });
 
@@ -102,6 +161,7 @@ router.post('/link-types', (req, res) => {
 // GET ontology graph (for visualisation)
 router.get('/graph', (req, res) => {
   const db = getDB();
+  const isPT = (req.headers['x-lang'] || 'en') === 'pt';
   const nodes = db.prepare('SELECT id, label, icon, color, category FROM object_types').all();
   const edges = db.prepare(`
     SELECT lt.id, lt.label, lt.from_type_id as source, lt.to_type_id as target, lt.color,
@@ -111,6 +171,14 @@ router.get('/graph', (req, res) => {
     LEFT JOIN object_types tt ON lt.to_type_id = tt.id
     WHERE lt.from_type_id IS NOT NULL AND lt.to_type_id IS NOT NULL
   `).all();
+  if (isPT) {
+    nodes.forEach(n => { n.label = translateType(n.label, true); });
+    edges.forEach(e => {
+      e.label = translateLink(e.label, true);
+      if (e.from_label) e.from_label = translateType(e.from_label, true);
+      if (e.to_label) e.to_label = translateType(e.to_label, true);
+    });
+  }
   res.json({ nodes, edges });
 });
 

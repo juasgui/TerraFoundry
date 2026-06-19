@@ -175,6 +175,17 @@ function initDB() {
     );
   `);
 
+  // Bilingual columns — added incrementally; SQLite doesn't support IF NOT EXISTS on ALTER TABLE
+  const bilingualMigrations = [
+    `ALTER TABLE alerts ADD COLUMN title_pt TEXT`,
+    `ALTER TABLE alerts ADD COLUMN description_pt TEXT`,
+    `ALTER TABLE events ADD COLUMN title_pt TEXT`,
+    `ALTER TABLE events ADD COLUMN description_pt TEXT`,
+    `ALTER TABLE missions ADD COLUMN name_pt TEXT`,
+    `ALTER TABLE missions ADD COLUMN description_pt TEXT`,
+  ];
+  bilingualMigrations.forEach(sql => { try { db.exec(sql); } catch {} });
+
   console.log('[DB] Schema initialised at', DB_PATH);
   return db;
 }

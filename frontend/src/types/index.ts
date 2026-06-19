@@ -230,6 +230,222 @@ export interface ChatMessage {
   objects?: FoundryObject[];
 }
 
+export interface EmergingRisk {
+  id: string;
+  title: string;
+  category: string;
+  confidence: number;
+  timeHorizon: string;
+  affectedPopulation: number;
+  severity: string;
+  trend: string;
+  detail: string;
+  actions: string[];
+}
+
+export interface OperationalRecommendation {
+  id: string;
+  priority: string;
+  priorityColor: string;
+  title: string;
+  description: string;
+  expectedImpact: string;
+  resourcesRequired: string;
+  timeframe: string;
+  category: string;
+  linkedRisk?: string;
+}
+
+export interface DeltaItem {
+  id: string;
+  metric: string;
+  change: string;
+  direction: 'up' | 'down' | 'alert' | 'neutral';
+  severity: string;
+  detail: string;
+}
+
+export interface DecisionIntel {
+  emergingRisks: EmergingRisk[];
+  recommendations: OperationalRecommendation[];
+  delta: DeltaItem[];
+  generatedAt: string;
+}
+
+export interface ImpactAnalysis {
+  object: FoundryObject;
+  totalAffected: number;
+  affectedAreas: FoundryObject[];
+  infraAtRisk: { name: string; type_id: string; status: string; severity: string; infra_type?: string }[];
+  counts: { areas: number; hospitals: number; schools: number; roads: number; bridges: number; shelters: number };
+  cascadeChain: { stage: number; event: string; type: string; severity: string; icon: string }[];
+}
+
+export interface SimulationResult {
+  inputs: { rainfall: number; windSpeed: number; riverLevel: number; populationDisplacement: number; foodSupply: number };
+  projectedAffected: number;
+  projectedDisplaced: number;
+  shelterDemand: number;
+  resourceDemand: number;
+  infrastructureStress: number;
+  healthRisk: number;
+  foodInsecurity: number;
+  overallRisk: number;
+  alerts: { severity: string; message: string }[];
+  generatedAt: string;
+}
+
+export interface AiBriefingRisk {
+  rank: number;
+  title: string;
+  detail: string;
+  severity: string;
+  source: string;
+  confidence: number;
+  actionRequired: string;
+}
+
+export interface AiBriefing {
+  greeting: string;
+  timestamp: string;
+  operatorName: string;
+  summary: string;
+  risks: AiBriefingRisk[];
+  stats: { critAlerts: number; newAlerts24h: number; activeHazards: number; activeMissions: number; totalAffected: number };
+}
+
+// ── Intelligence Workbench Types ──────────────────────────────────────────────
+
+export interface IntelNode {
+  id: string;
+  name: string;
+  type_id: string;
+  type_label: string;
+  type_icon: string;
+  type_color: string;
+  status: string;
+  severity: string | null;
+  affected_people: number | null;
+  beds: number | null;
+  capacity: number | null;
+  occupancy: number | null;
+  link_label: string | null;
+}
+
+export interface IntelStage {
+  stage: number;
+  label: string;
+  role: string;
+  nodes: IntelNode[];
+}
+
+export interface ImpactChainResult {
+  root: IntelNode;
+  stages: IntelStage[];
+  totalObjects: number;
+  totalAffected: number;
+  criticalCount: number;
+  infraAtRisk: number;
+  narrative: string;
+  generatedAt: string;
+}
+
+export interface RootCauseLevel {
+  level: number;
+  label: string;
+  nodes: IntelNode[];
+}
+
+export interface RootCauseResult {
+  outcome: IntelNode;
+  levels: RootCauseLevel[];
+  rootCauses: IntelNode[];
+  totalFactors: number;
+  generatedAt: string;
+}
+
+export interface VulnerabilityProvince {
+  id: string;
+  name: string;
+  status: string;
+  severity: string;
+  vulnerability_idx: number;
+  affected_people: number;
+  displaced: number;
+  population: number;
+  active_hazards: number;
+  health_facilities: number;
+  health_risks: number;
+  infra_at_risk: number;
+  shelter_capacity: number;
+  shelter_occupancy: number;
+  shelter_utilisation_pct: number;
+  exposure_score: number;
+  risk_level: string;
+}
+
+export interface VulnerabilityResult {
+  provinces: VulnerabilityProvince[];
+  summary: { critical: number; high: number; medium: number; low: number; totalAffected: number };
+  generatedAt: string;
+}
+
+export interface HistoricalEvent {
+  id: string;
+  name: string;
+  year: number;
+  status: string;
+  severity: string;
+  event_type: string;
+  wind_speed_kmh: number | null;
+  rainfall_mm: number | null;
+  landfall_date: string | null;
+  category: string | null;
+  estimated_deaths: number | null;
+  total_affected: number | null;
+  economic_loss_usd: number | null;
+  impacted_areas: { name: string; severity: string }[];
+  infra_threatened: number;
+  response_missions: number;
+  missions_list: { name: string; status: string }[];
+}
+
+export interface HistoricalResult {
+  events: HistoricalEvent[];
+  generatedAt: string;
+}
+
+export interface CompareProfile {
+  id: string;
+  name: string;
+  type_id: string;
+  type_label: string;
+  type_icon: string;
+  type_color: string;
+  status: string;
+  severity: string;
+  properties: Record<string, unknown>;
+  direct_impacts: IntelNode[];
+  total_affected: number;
+  infra_threatened: number;
+  areas_impacted: number;
+  risk_score: number;
+}
+
+export interface CompareResult {
+  a: CompareProfile;
+  b: CompareProfile;
+  comparison: { worse_affected: string; worse_infra: string; worse_severity: string };
+  generatedAt: string;
+}
+
+export interface IntelWorkbenchSummary {
+  graphStats: { totalObjects: number; totalLinks: number; totalTypes: number; totalLinkTypes: number };
+  situationStats: { activeHazards: number; critObjects: number; provinces: number; facilities: number };
+  topHazards: { id: string; name: string; severity: string; status: string; link_count: number }[];
+  generatedAt: string;
+}
+
 export interface SituationReport {
   type: string;
   title: string;

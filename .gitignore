@@ -1,5 +1,7 @@
 node_modules/
 backend/db/terra.db
+backend/db/terra.db-shm
+backend/db/terra.db-wal
 dist/
 .env
 .env.local
